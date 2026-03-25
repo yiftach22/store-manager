@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  MANAGER
+  WORKER
+}
+
+enum Frequency {
+  DAILY
+  WEEKLY
+}
+
+enum DayOfWeek {
+  SUNDAY
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+}
+
+enum OrderCategory {
+  FIXED
+  WEEKLY_A
+  WEEKLY_B
+}
+
+model User {
+  id              Int            @id @default(autoincrement())
+  name            String
+  email           String         @unique
+  passwordHash    String
+  role            Role           @default(WORKER)
+  createdAt       DateTime       @default(now())
+  taskInstances   TaskInstance[]
+  completedOrders Order[]        @relation("CompletedBy")
+  categories      UserCategory[]
+}
+
+model WorkerCategory {
+  id          String         @id @default(cuid())
+  name        String         @unique
+  description String?
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  tasks       TaskTemplate[]
+  users       UserCategory[]
+}
+
+model UserCategory {
+  user        User           @relation(fields: [userId], references: [id])
+  userId      Int
+  category    WorkerCategory @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  assignedAt  DateTime       @default(now())
+
+  @@id([userId, categoryId])
+}
+
+model TaskTemplate {
+  id          Int            @id @default(autoincrement())
+  title       String
+  description String?
+  frequency   Frequency
+  category    WorkerCategory @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  isActive    Boolean        @default(true)
+  instances   TaskInstance[]
+}
+
+model TaskInstance {
+  id          Int          @id @default(autoincrement())
+  template    TaskTemplate @relation(fields: [templateId], references: [id])
+  templateId  Int
+  user        User         @relation(fields: [userId], references: [id])
+  userId      Int
+  weekStart   DateTime
+  completed   Boolean      @default(false)
+  completedAt DateTime?
+}
+
+model Order {
+  id            Int           @id @default(autoincrement())
+  title         String
+  description   String?
+  dayOfWeek     DayOfWeek?
+  category      OrderCategory
+  completedBy   User?         @relation("CompletedBy", fields: [completedById], references: [id])
+  completedById Int?
+}
