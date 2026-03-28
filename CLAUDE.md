@@ -28,5 +28,16 @@
   - POST /auth/login — validates credentials, returns JWT
   - Tested and confirmed writing to DB
 
+- Phase 2: Order Management System ✓
+  - Schema: OrderTemplate (id, title, dayOfWeek Int?, category String, isActive) + OrderInstance (id, title, originalDate, currentDate, status, category, isOverdue, FK→template)
+  - GET  /api/orders?startDate=&endDate= — returns instances in range
+  - POST /api/orders/templates — create recurring template (Manager only)
+  - PATCH /api/orders/instances/:id/toggle — flip completion status
+  - POST /api/orders/sync — manual trigger for daily rollover
+  - Rollover logic: Mon–Sat rolls overdue instances forward (isOverdue=true); Sunday deletes them (weekend cleanup)
+  - Test suite: 27 tests passing (Jest + ts-jest + Supertest + jest-mock-extended)
+    - Unit: processDailyRollover — weekday/Sunday/completion/generation cases
+    - Integration: 401 auth guard, 403/201 RBAC, GET validation, PATCH toggle, sync
+
 ## Current Phase
-Phase 2: Core API routes (employees, tasks, orders, schedule)
+Phase 3: Employees + Tasks + Schedule API routes
