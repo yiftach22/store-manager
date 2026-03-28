@@ -5,30 +5,21 @@ export async function processDailyRollover(today: Date) {
   const todayStart = startOfDay(today);
   const isSunday = getDay(today) === 0;
 
-  // Step 1 — find all unfinished overdue instances
-  const overdue = await prisma.orderInstance.findMany({
-    where: {
-      status: false,
-      currentDate: { lt: todayStart },
-    },
-    select: { id: true },
-  });
-
-  const overdueIds = overdue.map((i) => i.id);
-  let deleted = 0;
+  // Step 1 — roll forward unfinished overdue instances (skip on Sunday)
   let updated = 0;
 
-  if (overdueIds.length > 0) {
-    if (isSunday) {
-      // Weekend cleanup — delete all unfinished instances
-      const result = await prisma.orderInstance.deleteMany({
-        where: { id: { in: overdueIds } },
-      });
-      deleted = result.count;
-    } else {
-      // Roll forward to today and mark overdue
+  if (!isSunday) {
+    const overdue = await prisma.orderInstance.findMany({
+      where: {
+        status: false,
+        currentDate: { lt: todayStart },
+      },
+      select: { id: true },
+    });
+
+    if (overdue.length > 0) {
       const result = await prisma.orderInstance.updateMany({
-        where: { id: { in: overdueIds } },
+        where: { id: { in: overdue.map((i) => i.id) } },
         data: { currentDate: todayStart, isOverdue: true },
       });
       updated = result.count;
@@ -46,7 +37,6 @@ export async function processDailyRollover(today: Date) {
   let created = 0;
 
   for (const template of templates) {
-    // Avoid duplicates — skip if an instance already exists for today
     const exists = await prisma.orderInstance.findFirst({
       where: {
         templateId: template.id,
@@ -70,5 +60,5 @@ export async function processDailyRollover(today: Date) {
     }
   }
 
-  return { deleted, updated, created };
+  return { updated, created };
 }

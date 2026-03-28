@@ -1,5 +1,3 @@
-// jest.mock is hoisted before imports, so the manual mock at
-// src/prisma/__mocks__/client.ts is used instead of the real Prisma client.
 jest.mock('../../src/prisma/client');
 
 import { PrismaClient } from '@prisma/client';
@@ -33,48 +31,34 @@ describe('processDailyRollover', () => {
         data: { currentDate: startOfDay(TUESDAY), isOverdue: true },
       });
       expect(db.orderInstance.deleteMany).not.toHaveBeenCalled();
-      expect(result).toEqual({ deleted: 0, updated: 2, created: 0 });
+      expect(result).toEqual({ updated: 2, created: 0 });
     });
 
-    it('does not call updateMany or deleteMany when there are no overdue instances', async () => {
+    it('does not call updateMany when there are no overdue instances', async () => {
       db.orderInstance.findMany.mockResolvedValue([]);
       db.orderTemplate.findMany.mockResolvedValue([]);
 
       const result = await processDailyRollover(TUESDAY);
 
       expect(db.orderInstance.updateMany).not.toHaveBeenCalled();
-      expect(db.orderInstance.deleteMany).not.toHaveBeenCalled();
-      expect(result).toEqual({ deleted: 0, updated: 0, created: 0 });
+      expect(result).toEqual({ updated: 0, created: 0 });
     });
 
   });
 
   // ─── Sunday behaviour ────────────────────────────────────────────────────
 
-  describe('Sunday (weekend cleanup)', () => {
+  describe('Sunday', () => {
 
-    it('deletes unfinished instances instead of rolling them over', async () => {
-      db.orderInstance.findMany.mockResolvedValue([{ id: 3 }, { id: 4 }] as any);
-      db.orderInstance.deleteMany.mockResolvedValue({ count: 2 });
+    it('leaves overdue instances untouched — no update, no delete', async () => {
       db.orderTemplate.findMany.mockResolvedValue([]);
 
       const result = await processDailyRollover(SUNDAY);
 
-      expect(db.orderInstance.deleteMany).toHaveBeenCalledWith({
-        where: { id: { in: [3, 4] } },
-      });
+      expect(db.orderInstance.findMany).not.toHaveBeenCalled();
       expect(db.orderInstance.updateMany).not.toHaveBeenCalled();
-      expect(result).toEqual({ deleted: 2, updated: 0, created: 0 });
-    });
-
-    it('does not delete anything if there are no overdue instances on Sunday', async () => {
-      db.orderInstance.findMany.mockResolvedValue([]);
-      db.orderTemplate.findMany.mockResolvedValue([]);
-
-      const result = await processDailyRollover(SUNDAY);
-
       expect(db.orderInstance.deleteMany).not.toHaveBeenCalled();
-      expect(result.deleted).toBe(0);
+      expect(result).toEqual({ updated: 0, created: 0 });
     });
 
   });
@@ -89,7 +73,6 @@ describe('processDailyRollover', () => {
 
       await processDailyRollover(TUESDAY);
 
-      // Verify the WHERE clause explicitly filters for incomplete tasks
       expect(db.orderInstance.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({ status: false }),
@@ -98,7 +81,6 @@ describe('processDailyRollover', () => {
     });
 
     it('takes no action when completed tasks are the only ones past their date', async () => {
-      // The query with status:false returns empty — completed tasks are excluded
       db.orderInstance.findMany.mockResolvedValue([]);
       db.orderTemplate.findMany.mockResolvedValue([]);
 
@@ -106,7 +88,7 @@ describe('processDailyRollover', () => {
 
       expect(db.orderInstance.updateMany).not.toHaveBeenCalled();
       expect(db.orderInstance.deleteMany).not.toHaveBeenCalled();
-      expect(result).toEqual({ deleted: 0, updated: 0, created: 0 });
+      expect(result).toEqual({ updated: 0, created: 0 });
     });
 
   });
@@ -123,7 +105,7 @@ describe('processDailyRollover', () => {
 
       db.orderInstance.findMany.mockResolvedValue([]);
       db.orderTemplate.findMany.mockResolvedValue([tuesdayTemplate] as any);
-      db.orderInstance.findFirst.mockResolvedValue(null); // no duplicate exists
+      db.orderInstance.findFirst.mockResolvedValue(null);
       db.orderInstance.create.mockResolvedValue({ id: 99 } as any);
 
       const result = await processDailyRollover(TUESDAY);
@@ -150,7 +132,7 @@ describe('processDailyRollover', () => {
 
       db.orderInstance.findMany.mockResolvedValue([]);
       db.orderTemplate.findMany.mockResolvedValue([template] as any);
-      db.orderInstance.findFirst.mockResolvedValue({ id: 50 } as any); // already exists
+      db.orderInstance.findFirst.mockResolvedValue({ id: 50 } as any);
 
       const result = await processDailyRollover(TUESDAY);
 
@@ -159,10 +141,8 @@ describe('processDailyRollover', () => {
     });
 
     it('does not auto-generate instances for floating templates (dayOfWeek = null)', async () => {
-      // Floating templates are NOT returned by the query (dayOfWeek: todayDow),
-      // so they will never be in the findMany result.
       db.orderInstance.findMany.mockResolvedValue([]);
-      db.orderTemplate.findMany.mockResolvedValue([]); // null-dayOfWeek templates excluded by query
+      db.orderTemplate.findMany.mockResolvedValue([]);
 
       const result = await processDailyRollover(TUESDAY);
 
@@ -176,7 +156,6 @@ describe('processDailyRollover', () => {
 
       await processDailyRollover(TUESDAY);
 
-      // Tuesday = getDay() 2
       expect(db.orderTemplate.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({ isActive: true, dayOfWeek: 2 }),

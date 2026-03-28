@@ -203,7 +203,6 @@ describe('POST /api/orders/sync', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({
-      deleted: expect.any(Number),
       updated: expect.any(Number),
       created: expect.any(Number),
     });
@@ -226,8 +225,8 @@ describe('POST /api/orders/sync', () => {
       .set('Authorization', `Bearer ${managerToken()}`);
 
     expect(res.status).toBe(200);
-    // updated will be 0 or 1 depending on whether today (real clock) is a Sunday or not
-    expect(typeof res.body.updated + res.body.deleted).not.toBe('undefinedundefined');
+    expect(typeof res.body.updated).toBe('number');
+    expect(typeof res.body.created).toBe('number');
   });
 
 });
