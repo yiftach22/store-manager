@@ -55,6 +55,7 @@ describe('processDailyRollover', () => {
       db.orderInstance.findMany.mockResolvedValue([{ id: 5 }] as any);
       db.orderInstance.updateMany.mockResolvedValue({ count: 1 });
       db.orderTemplate.findMany.mockResolvedValue([]);
+      db.orderList.findMany.mockResolvedValue([]);
 
       const result = await processDailyRollover(SUNDAY);
 

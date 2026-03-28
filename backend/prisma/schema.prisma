@@ -80,12 +80,23 @@ model TaskInstance {
   completedAt DateTime?
 }
 
+model OrderList {
+  id        Int             @id @default(autoincrement())
+  name      String
+  isActive  Boolean         @default(true)
+  createdAt DateTime        @default(now())
+  templates OrderTemplate[]
+  instances OrderInstance[]
+}
+
 model OrderTemplate {
   id        Int             @id @default(autoincrement())
   title     String
-  dayOfWeek Int?            // 0=Sun, 1=Mon … 6=Sat; null=floating
-  category  String          // 'daily' | 'floating_a' | 'floating_b'
+  dayOfWeek Int?            // 0=Sun, 1=Mon … 6=Sat; null=floating (belongs to a list)
+  category  String          // 'daily' | 'floating'
   isActive  Boolean         @default(true)
+  list      OrderList?      @relation(fields: [listId], references: [id])
+  listId    Int?
   instances OrderInstance[]
 }
 
@@ -99,4 +110,6 @@ model OrderInstance {
   isOverdue    Boolean        @default(false)
   template     OrderTemplate? @relation(fields: [templateId], references: [id])
   templateId   Int?
+  list         OrderList?     @relation(fields: [listId], references: [id])
+  listId       Int?
 }

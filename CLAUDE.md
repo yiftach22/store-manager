@@ -52,8 +52,18 @@ Orders screen only — no employees, no tasks in the UI.
 - Manager view: worker view + template management + sync trigger
 - Single app, role-based views (role determined via GET /auth/me after login)
 
+- Phase 3: Orders UI ✓
+  - Schema: added OrderList model (id, name, isActive); listId FK on OrderTemplate + OrderInstance
+  - Rollover updated: floating instances excluded from day rollover; generated fresh on Sundays
+  - GET /api/orders/week?weekOf= — single call returns { weekStart, days[], lists[] } with pre-sorted instances
+  - GET/POST /api/orders/lists — list management
+  - POST /api/orders/instances — manager one-off instance for any day or floating list
+  - Frontend: Login page + Orders page (WeekNav, DayColumn ×6, FloatingList per list, OrderItem, AddOrderModal)
+  - Optimistic checkbox toggle with revert on error
+  - Past days grayed/disabled; today highlighted; overdue items red at top; done items struck through at bottom
+
 ## Current Phase
-Phase 3: Orders UI (React frontend)
+Phase 4: Manager panel (template management, list creation)
 - Login screen (POST /auth/login → store JWT in localStorage)
 - Orders screen: GET /api/orders for current week, PATCH toggle per item
 - Manager overlay: template list (GET /api/orders/templates), create/deactivate, sync button
