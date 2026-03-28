@@ -37,7 +37,7 @@
   - PATCH /api/orders/instances/:id/toggle — flip completion status (all roles)
   - POST /api/orders/sync — manual daily rollover trigger (Manager only)
   - GET  /auth/me — returns current user from DB (auth required)
-  - Rollover logic: Mon–Sat rolls overdue instances forward (isOverdue=true); Sunday deletes them (weekend cleanup)
+  - Rollover logic: Sun–Fri (work week) rolls overdue instances forward (isOverdue=true); Saturday is rest day — instances left untouched
   - CORS configured via FRONTEND_URL env var (default: http://localhost:5173)
   - Test suite: 28 tests passing (Jest + ts-jest + Supertest + jest-mock-extended)
 

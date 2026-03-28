@@ -3,12 +3,12 @@ import { prisma } from '../prisma/client';
 
 export async function processDailyRollover(today: Date) {
   const todayStart = startOfDay(today);
-  const isSunday = getDay(today) === 0;
+  const isSaturday = getDay(today) === 6;
 
-  // Step 1 — roll forward unfinished overdue instances (skip on Sunday)
+  // Step 1 — roll forward unfinished overdue instances (skip on Saturday)
   let updated = 0;
 
-  if (!isSunday) {
+  if (!isSaturday) {
     const overdue = await prisma.orderInstance.findMany({
       where: {
         status: false,

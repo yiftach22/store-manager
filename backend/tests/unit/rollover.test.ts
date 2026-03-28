@@ -8,16 +8,19 @@ import { processDailyRollover } from '../../src/services/order.service';
 
 const db = prisma as unknown as DeepMockProxy<PrismaClient>;
 
-// March 24 = Tuesday (getDay() === 2)
-const TUESDAY = new Date('2026-03-24T12:00:00.000Z');
-// March 29 = Sunday (getDay() === 0)
-const SUNDAY = new Date('2026-03-29T12:00:00.000Z');
+// Work week: Sun–Fri. Saturday is the rest day (no rollover).
+// March 24 = Tuesday  (getDay() === 2) — mid-week workday
+// March 29 = Sunday   (getDay() === 0) — start of work week
+// March 28 = Saturday (getDay() === 6) — rest day, no rollover
+const TUESDAY  = new Date('2026-03-24T12:00:00.000Z');
+const SUNDAY   = new Date('2026-03-29T12:00:00.000Z');
+const SATURDAY = new Date('2026-03-28T12:00:00.000Z');
 
 describe('processDailyRollover', () => {
 
-  // ─── Weekday behaviour ───────────────────────────────────────────────────
+  // ─── Workday behaviour (Sun–Fri) ─────────────────────────────────────────
 
-  describe('weekday (Tuesday)', () => {
+  describe('workday (Tuesday)', () => {
 
     it('moves overdue unfinished instances to today and marks isOverdue=true', async () => {
       db.orderInstance.findMany.mockResolvedValue([{ id: 1 }, { id: 2 }] as any);
@@ -46,14 +49,32 @@ describe('processDailyRollover', () => {
 
   });
 
-  // ─── Sunday behaviour ────────────────────────────────────────────────────
+  describe('workday (Sunday — start of week)', () => {
 
-  describe('Sunday', () => {
+    it('rolls over overdue instances on Sunday just like any other workday', async () => {
+      db.orderInstance.findMany.mockResolvedValue([{ id: 5 }] as any);
+      db.orderInstance.updateMany.mockResolvedValue({ count: 1 });
+      db.orderTemplate.findMany.mockResolvedValue([]);
+
+      const result = await processDailyRollover(SUNDAY);
+
+      expect(db.orderInstance.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: [5] } },
+        data: { currentDate: startOfDay(SUNDAY), isOverdue: true },
+      });
+      expect(result).toEqual({ updated: 1, created: 0 });
+    });
+
+  });
+
+  // ─── Saturday behaviour (rest day) ───────────────────────────────────────
+
+  describe('Saturday (rest day)', () => {
 
     it('leaves overdue instances untouched — no update, no delete', async () => {
       db.orderTemplate.findMany.mockResolvedValue([]);
 
-      const result = await processDailyRollover(SUNDAY);
+      const result = await processDailyRollover(SATURDAY);
 
       expect(db.orderInstance.findMany).not.toHaveBeenCalled();
       expect(db.orderInstance.updateMany).not.toHaveBeenCalled();
@@ -156,6 +177,7 @@ describe('processDailyRollover', () => {
 
       await processDailyRollover(TUESDAY);
 
+      // Tuesday = getDay() 2
       expect(db.orderTemplate.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({ isActive: true, dayOfWeek: 2 }),
