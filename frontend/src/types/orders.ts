@@ -8,6 +8,7 @@ export interface OrderInstance {
   isOverdue: boolean;
   templateId: number | null;
   listId: number | null;
+  virtual?: boolean;  // true = derived from template, no DB instance yet
 }
 
 export interface DayData {

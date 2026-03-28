@@ -17,42 +17,86 @@ export async function getWeek(req: Request, res: Response, next: NextFunction) {
     }
 
     // Snap to Sunday of the requested week
-    const weekStart = startOfWeek(base, { weekStartsOn: 0 }); // 0 = Sunday
+    const weekStart = startOfWeek(base, { weekStartsOn: 0 });
+    const currentWeekSunday = startOfWeek(new Date(), { weekStartsOn: 0 });
+    const isFutureWeek = weekStart > currentWeekSunday;
 
-    // Build Sun–Fri date range (6 days)
-    const weekEnd = endOfDay(addDays(weekStart, 5)); // Friday end
-
-    // Fetch all daily instances for the week (no listId)
-    const dailyInstances = await prisma.orderInstance.findMany({
-      where: {
-        currentDate: { gte: startOfDay(weekStart), lte: weekEnd },
-        listId: null,
-      },
-      include: { template: true },
-    });
-
-    // Build day slots Sun–Fri
-    const days = Array.from({ length: 6 }, (_, i) => {
-      const date = addDays(weekStart, i);
-      const dateStr = format(date, 'yyyy-MM-dd');
-      const dayOfWeek = i; // 0=Sun … 5=Fri
-      const dayStart = startOfDay(date);
-      const dayEnd = endOfDay(date);
-
-      const instances = dailyInstances
-        .filter((inst) => inst.currentDate >= dayStart && inst.currentDate <= dayEnd)
-        .sort(sortInstances);
-
-      return { date: dateStr, dayOfWeek, label: DAY_LABELS[i], instances };
-    });
-
-    // Fetch active floating lists with their week's instances
+    const weekStartDay = startOfDay(weekStart);
     const activeLists = await prisma.orderList.findMany({
       where: { isActive: true },
       orderBy: { id: 'asc' },
     });
 
-    const weekStartDay = startOfDay(weekStart);
+    if (isFutureWeek) {
+      // Build days from templates; include any manager one-off instances (templateId=null)
+      const days = await Promise.all(
+        Array.from({ length: 6 }, async (_, i) => {
+          const date = addDays(weekStart, i);
+          const dateStr = format(date, 'yyyy-MM-dd');
+          const dayStart = startOfDay(date);
+          const dayEnd = endOfDay(date);
+
+          const templates = await prisma.orderTemplate.findMany({
+            where: { dayOfWeek: i, listId: null, isActive: true },
+          });
+          const oneOffs = await prisma.orderInstance.findMany({
+            where: { listId: null, templateId: null, currentDate: { gte: dayStart, lte: dayEnd } },
+          });
+
+          const instances = [
+            ...templates.map((t) => ({
+              id: -(t.id), title: t.title, status: false, isOverdue: false,
+              category: t.category, templateId: t.id, listId: null,
+              originalDate: dateStr, currentDate: dateStr, virtual: true,
+            })),
+            ...oneOffs.map((inst) => ({ ...inst, virtual: false })),
+          ];
+
+          return { date: dateStr, dayOfWeek: i, label: DAY_LABELS[i], instances };
+        })
+      );
+
+      const lists = await Promise.all(
+        activeLists.map(async (list) => {
+          const templates = await prisma.orderTemplate.findMany({
+            where: { listId: list.id, isActive: true },
+          });
+          const oneOffs = await prisma.orderInstance.findMany({
+            where: { listId: list.id, templateId: null, originalDate: weekStartDay },
+          });
+          const instances = [
+            ...templates.map((t) => ({
+              id: -(t.id), title: t.title, status: false, isOverdue: false,
+              category: t.category, templateId: t.id, listId: list.id,
+              originalDate: format(weekStartDay, 'yyyy-MM-dd'),
+              currentDate: format(weekStartDay, 'yyyy-MM-dd'), virtual: true,
+            })),
+            ...oneOffs.map((inst) => ({ ...inst, virtual: false })),
+          ];
+          return { id: list.id, name: list.name, instances };
+        })
+      );
+
+      return res.json({ weekStart: format(weekStart, 'yyyy-MM-dd'), days, lists });
+    }
+
+    // Current/past week: return actual instances from DB
+    const weekEnd = endOfDay(addDays(weekStart, 5));
+    const dailyInstances = await prisma.orderInstance.findMany({
+      where: { currentDate: { gte: weekStartDay, lte: weekEnd }, listId: null },
+      include: { template: true },
+    });
+
+    const days = Array.from({ length: 6 }, (_, i) => {
+      const date = addDays(weekStart, i);
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const dayStart = startOfDay(date);
+      const dayEnd = endOfDay(date);
+      const instances = dailyInstances
+        .filter((inst) => inst.currentDate >= dayStart && inst.currentDate <= dayEnd)
+        .sort(sortInstances);
+      return { date: dateStr, dayOfWeek: i, label: DAY_LABELS[i], instances };
+    });
 
     const lists = await Promise.all(
       activeLists.map(async (list) => {
@@ -64,11 +108,7 @@ export async function getWeek(req: Request, res: Response, next: NextFunction) {
       })
     );
 
-    res.json({
-      weekStart: format(weekStart, 'yyyy-MM-dd'),
-      days,
-      lists,
-    });
+    res.json({ weekStart: format(weekStart, 'yyyy-MM-dd'), days, lists });
   } catch (err) {
     next(err);
   }

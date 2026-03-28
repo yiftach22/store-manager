@@ -6,12 +6,13 @@ import { AddOrderModal } from './AddOrderModal';
 interface Props {
   list: ListData;
   isManager: boolean;
+  isFuture: boolean;
   weekStart: string;  // 'YYYY-MM-DD' — used as the date for new one-off instances
   onToggle: (id: number) => void;
   onAdded: (listId: number, instance: OrderInstance) => void;
 }
 
-export function FloatingList({ list, isManager, weekStart, onToggle, onAdded }: Props) {
+export function FloatingList({ list, isManager, isFuture, weekStart, onToggle, onAdded }: Props) {
   const [showModal, setShowModal] = useState(false);
 
   return (
@@ -28,7 +29,7 @@ export function FloatingList({ list, isManager, weekStart, onToggle, onAdded }: 
           <li className="text-xs text-gray-400 px-2 py-2">אין פריטים</li>
         )}
         {list.instances.map((inst) => (
-          <OrderItem key={inst.id} instance={inst} onToggle={onToggle} />
+          <OrderItem key={inst.id} instance={inst} disabled={isFuture} onToggle={onToggle} />
         ))}
       </ul>
 

@@ -7,12 +7,13 @@ interface Props {
   day: DayData;
   isToday: boolean;
   isPast: boolean;
+  isFuture: boolean;
   isManager: boolean;
   onToggle: (id: number) => void;
   onAdded: (date: string, instance: OrderInstance) => void;
 }
 
-export function DayColumn({ day, isToday, isPast, isManager, onToggle, onAdded }: Props) {
+export function DayColumn({ day, isToday, isPast, isFuture, isManager, onToggle, onAdded }: Props) {
   const [showModal, setShowModal] = useState(false);
 
   const headerClass = isToday
@@ -37,7 +38,7 @@ export function DayColumn({ day, isToday, isPast, isManager, onToggle, onAdded }
           <OrderItem
             key={inst.id}
             instance={inst}
-            disabled={isPast}
+            disabled={isPast || isFuture}
             onToggle={onToggle}
           />
         ))}

@@ -62,13 +62,17 @@ Orders screen only — no employees, no tasks in the UI.
   - Optimistic checkbox toggle with revert on error
   - Past days grayed/disabled; today highlighted; overdue items red at top; done items struck through at bottom
 
+- Phase 3.5: Seed data + future-week virtual display ✓
+  - Seed: 37 daily templates (5–7 per day, Sun–Fri, Hebrew titles) + 2 floating lists ("משמרת בוקר" 6 items, "משמרת ערב" 7 items)
+  - prisma/seedCurrentWeek.ts — one-off script to generate real instances for the current week without triggering rollover side-effects
+  - Future weeks: GET /api/orders/week derives display from templates (virtual:true, id<0) — no DB instances pre-created
+  - Manager can still add one-off instances to future dates; they appear as real (non-virtual) items immediately
+  - Frontend: future-week checkboxes disabled; manager + button still active for one-offs
+
 ## Current Phase
 Phase 4: Manager panel (template management, list creation)
-- Login screen (POST /auth/login → store JWT in localStorage)
-- Orders screen: GET /api/orders for current week, PATCH toggle per item
-- Manager overlay: template list (GET /api/orders/templates), create/deactivate, sync button
+- Manager overlay: template list (GET /api/orders/templates), create/deactivate templates, create lists, sync button
 
 ## Future Phases (infrastructure already in schema)
-- Phase 4: Employees + Tasks + Schedule (TaskTemplate, TaskInstance, WorkerCategory models exist)
 - Phase 5: Cron job to auto-run daily rollover (replace manual POST /api/orders/sync)
 - Phase 6: Mobile app (/mobile — React Native + Expo)

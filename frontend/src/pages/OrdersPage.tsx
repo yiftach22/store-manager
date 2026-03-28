@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { startOfWeek, addWeeks, subWeeks, format, isSameDay, isBefore, startOfDay } from 'date-fns';
+import { startOfWeek, addWeeks, subWeeks, format, isSameDay, isBefore, isAfter, startOfDay } from 'date-fns';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import type { WeekData, OrderInstance } from '../types/orders';
@@ -35,8 +35,12 @@ export function OrdersPage() {
 
   useEffect(() => { fetchWeek(weekStart); }, [weekStart, fetchWeek]);
 
+  const currentWeekSunday = getSundayOfWeek(new Date());
+  const isFutureWeek = isAfter(weekStart, currentWeekSunday);
+
   // Optimistic toggle — flip locally, then sync to server; revert on error
   function handleToggle(id: number) {
+    if (id < 0) return; // virtual template instance — no DB record to toggle
     setWeekData((prev) => {
       if (!prev) return prev;
       const flipInstance = (inst: OrderInstance) =>
@@ -127,6 +131,7 @@ export function OrdersPage() {
                       day={day}
                       isToday={isToday}
                       isPast={isPast}
+                      isFuture={isFutureWeek}
                       isManager={isManager}
                       onToggle={handleToggle}
                       onAdded={handleDayAdded}
@@ -146,6 +151,7 @@ export function OrdersPage() {
                       key={list.id}
                       list={list}
                       isManager={isManager}
+                      isFuture={isFutureWeek}
                       weekStart={weekData.weekStart}
                       onToggle={handleToggle}
                       onAdded={handleListAdded}
