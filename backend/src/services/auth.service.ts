@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { Role } from '@prisma/client';
+import { Role } from '@prisma/client'; // still needed for signToken type
 import { prisma } from '../prisma/client';
 import { config } from '../config/env';
 import { AppError, ErrorCode } from '../types/errors';
@@ -11,11 +11,15 @@ export async function register(data: {
   name: string;
   email: string;
   password: string;
-  role?: Role;
 }) {
   const existing = await prisma.user.findUnique({ where: { email: data.email } });
   if (existing) {
     throw new AppError('Email already in use', 409, ErrorCode.EMAIL_TAKEN);
+  }
+
+  const allowed = await prisma.allowedEmail.findUnique({ where: { email: data.email } });
+  if (!allowed) {
+    throw new AppError('Email not authorized to register', 403, ErrorCode.FORBIDDEN);
   }
 
   const passwordHash = await bcrypt.hash(data.password, SALT_ROUNDS);
@@ -25,7 +29,7 @@ export async function register(data: {
       name: data.name,
       email: data.email,
       passwordHash,
-      role: data.role ?? Role.WORKER,
+      role: allowed.role,
     },
     select: {
       id: true,

@@ -5,8 +5,8 @@ import { AppError, ErrorCode } from '../types/errors';
 
 export async function register(req: Request, res: Response, next: NextFunction) {
   try {
-    const { name, email, password, role } = req.body;
-    const result = await authService.register({ name, email, password, role });
+    const { name, email, password } = req.body;
+    const result = await authService.register({ name, email, password });
     res.status(201).json(result);
   } catch (err) {
     next(err);

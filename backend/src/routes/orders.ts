@@ -1,16 +1,8 @@
-import { Router, Request, Response, NextFunction } from 'express';
-import { Role } from '@prisma/client';
-import { AppError, ErrorCode } from '../types/errors';
+import { Router } from 'express';
+import { requireManager } from '../middleware/auth';
 import * as orderController from '../controllers/order.controller';
 
 export const router = Router();
-
-function requireManager(req: Request, res: Response, next: NextFunction) {
-  if (req.user?.role !== Role.MANAGER) {
-    return next(new AppError('Forbidden', 403, ErrorCode.FORBIDDEN));
-  }
-  next();
-}
 
 router.get('/week', orderController.getWeek);
 router.get('/', orderController.getInstances);

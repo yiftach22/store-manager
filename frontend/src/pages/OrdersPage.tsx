@@ -6,14 +6,18 @@ import type { WeekData, OrderInstance } from '../types/orders';
 import { WeekNav } from '../components/WeekNav';
 import { DayColumn } from '../components/DayColumn';
 import { FloatingList } from '../components/FloatingList';
+import { UsersTab } from '../components/UsersTab';
 
 function getSundayOfWeek(d: Date): Date {
   return startOfWeek(d, { weekStartsOn: 0 });
 }
 
+type Tab = 'orders' | 'users';
+
 export function OrdersPage() {
   const { user, logout } = useAuth();
   const isManager = user?.role === 'MANAGER';
+  const [activeTab, setActiveTab] = useState<Tab>('orders');
 
   const [weekStart, setWeekStart] = useState<Date>(() => getSundayOfWeek(new Date()));
   const [weekData, setWeekData] = useState<WeekData | null>(null);
@@ -97,72 +101,100 @@ export function OrdersPage() {
       {/* Top bar */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-lg font-bold text-gray-800">ניצת — הזמנות</h1>
+          <h1 className="text-lg font-bold text-gray-800">ניצת</h1>
           <div className="flex items-center gap-3">
             <span className="text-sm text-gray-500">{user?.name}</span>
             {isManager && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">מנהל</span>}
             <button onClick={logout} className="text-sm text-gray-400 hover:text-gray-600">יציאה</button>
           </div>
         </div>
-        <WeekNav
-          weekStart={weekStart}
-          onPrev={() => setWeekStart((w) => subWeeks(w, 1))}
-          onNext={() => setWeekStart((w) => addWeeks(w, 1))}
-        />
+
+        {/* Tab bar — manager only */}
+        {isManager && (
+          <div className="flex border-b border-gray-200 px-4">
+            <button
+              onClick={() => setActiveTab('orders')}
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'orders' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+            >
+              הזמנות
+            </button>
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+            >
+              ניהול עובדים
+            </button>
+          </div>
+        )}
+
+        {activeTab === 'orders' && (
+          <WeekNav
+            weekStart={weekStart}
+            onPrev={() => setWeekStart((w) => subWeeks(w, 1))}
+            onNext={() => setWeekStart((w) => addWeeks(w, 1))}
+          />
+        )}
       </header>
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-6 flex flex-col gap-8">
-        {loading && <div className="text-center text-gray-400 py-12">טוען...</div>}
-        {error && <div className="text-center text-red-500 py-12">{error}</div>}
 
-        {weekData && !loading && (
+        {/* ── Users management tab ── */}
+        {activeTab === 'users' && <UsersTab />}
+
+        {/* ── Orders tab ── */}
+        {activeTab === 'orders' && (
           <>
-            {/* ── Daily section ── */}
-            <section>
-              <h2 className="text-sm font-semibold text-gray-500 mb-3">הזמנות יומיות</h2>
-              <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-                {weekData.days.map((day) => {
-                  const dayDate = startOfDay(new Date(day.date + 'T00:00:00'));
-                  const isToday = isSameDay(dayDate, today);
-                  const isPast = isBefore(dayDate, today) && !isToday;
-                  return (
-                    <DayColumn
-                      key={day.date}
-                      day={day}
-                      isToday={isToday}
-                      isPast={isPast}
-                      isFuture={isFutureWeek}
-                      isManager={isManager}
-                      onToggle={handleToggle}
-                      onAdded={handleDayAdded}
-                    />
-                  );
-                })}
-              </div>
-            </section>
+            {loading && <div className="text-center text-gray-400 py-12">טוען...</div>}
+            {error && <div className="text-center text-red-500 py-12">{error}</div>}
 
-            {/* ── Floating lists section ── */}
-            {weekData.lists.length > 0 && (
-              <section>
-                <h2 className="text-sm font-semibold text-gray-500 mb-3">רשימות שבועיות</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {weekData.lists.map((list) => (
-                    <FloatingList
-                      key={list.id}
-                      list={list}
-                      isManager={isManager}
-                      isFuture={isFutureWeek}
-                      weekStart={weekData.weekStart}
-                      onToggle={handleToggle}
-                      onAdded={handleListAdded}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
+            {weekData && !loading && (
+              <>
+                <section>
+                  <h2 className="text-sm font-semibold text-gray-500 mb-3">הזמנות יומיות</h2>
+                  <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+                    {weekData.days.map((day) => {
+                      const dayDate = startOfDay(new Date(day.date + 'T00:00:00'));
+                      const isToday = isSameDay(dayDate, today);
+                      const isPast = isBefore(dayDate, today) && !isToday;
+                      return (
+                        <DayColumn
+                          key={day.date}
+                          day={day}
+                          isToday={isToday}
+                          isPast={isPast}
+                          isFuture={isFutureWeek}
+                          isManager={isManager}
+                          onToggle={handleToggle}
+                          onAdded={handleDayAdded}
+                        />
+                      );
+                    })}
+                  </div>
+                </section>
 
-            {weekData.lists.length === 0 && !isManager && (
-              <div className="text-center text-gray-400 text-sm py-4">אין רשימות שבועיות</div>
+                {weekData.lists.length > 0 && (
+                  <section>
+                    <h2 className="text-sm font-semibold text-gray-500 mb-3">רשימות שבועיות</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {weekData.lists.map((list) => (
+                        <FloatingList
+                          key={list.id}
+                          list={list}
+                          isManager={isManager}
+                          isFuture={isFutureWeek}
+                          weekStart={weekData.weekStart}
+                          onToggle={handleToggle}
+                          onAdded={handleListAdded}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {weekData.lists.length === 0 && !isManager && (
+                  <div className="text-center text-gray-400 text-sm py-4">אין רשימות שבועיות</div>
+                )}
+              </>
             )}
           </>
         )}

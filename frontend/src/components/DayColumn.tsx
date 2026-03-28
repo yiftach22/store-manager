@@ -23,12 +23,12 @@ export function DayColumn({ day, isToday, isPast, isFuture, isManager, onToggle,
     : 'bg-gray-50 text-gray-700';
 
   return (
-    <div className={`flex flex-col rounded-xl border ${isPast ? 'border-gray-100 opacity-70' : 'border-gray-200'} overflow-hidden min-w-0`}>
+    <div className={`flex flex-col rounded-xl border overflow-hidden min-w-0 ${isToday ? 'border-blue-300 bg-blue-50' : isPast ? 'border-gray-100 opacity-70' : 'border-gray-200'}`}>
       {/* Day header */}
       <div className={`px-3 py-2 text-center font-semibold text-sm ${headerClass}`}>
         <div>{day.label}</div>
         <div className={`text-xs font-normal ${isToday ? 'text-blue-100' : 'text-gray-400'}`}>
-          {day.date.slice(5).replace('-', '/')}
+          {day.date.slice(5).split('-').reverse().join('/')}
         </div>
       </div>
 
