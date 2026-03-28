@@ -13,6 +13,8 @@ function requireManager(req: Request, res: Response, next: NextFunction) {
 }
 
 router.get('/', orderController.getInstances);
+router.get('/templates', requireManager, orderController.getTemplates);
 router.post('/templates', requireManager, orderController.createTemplate);
+router.patch('/templates/:id/toggle', requireManager, orderController.toggleTemplate);
 router.patch('/instances/:id/toggle', orderController.toggleInstance);
-router.post('/sync', orderController.syncOrders);
+router.post('/sync', requireManager, orderController.syncOrders);

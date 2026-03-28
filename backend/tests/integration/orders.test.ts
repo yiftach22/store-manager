@@ -209,6 +209,13 @@ describe('POST /api/orders/sync', () => {
     });
   });
 
+  it('returns 403 when a WORKER calls sync', async () => {
+    const res = await request(app)
+      .post('/api/orders/sync')
+      .set('Authorization', `Bearer ${workerToken()}`);
+    expect(res.status).toBe(403);
+  });
+
   it('reports updated count correctly when there are overdue instances on a weekday', async () => {
     db.orderInstance.findMany.mockResolvedValue([{ id: 7 }] as any);
     db.orderInstance.updateMany.mockResolvedValue({ count: 1 });
@@ -216,7 +223,7 @@ describe('POST /api/orders/sync', () => {
 
     const res = await request(app)
       .post('/api/orders/sync')
-      .set('Authorization', `Bearer ${workerToken()}`);
+      .set('Authorization', `Bearer ${managerToken()}`);
 
     expect(res.status).toBe(200);
     // updated will be 0 or 1 depending on whether today (real clock) is a Sunday or not

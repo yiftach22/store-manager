@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { config } from './config/env';
 import { authMiddleware } from './middleware/auth';
 import { errorHandler } from './middleware/errorHandler';
 import { router as authRouter } from './routes/auth';
@@ -9,7 +10,7 @@ export function createApp() {
   const app = express();
 
   app.use(express.json());
-  app.use(cors());
+  app.use(cors({ origin: config.frontendUrl }));
 
   // Public routes — no auth required
   app.use('/auth', authRouter);

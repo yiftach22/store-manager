@@ -99,6 +99,42 @@ export async function toggleInstance(req: Request, res: Response, next: NextFunc
   }
 }
 
+// GET /api/orders/templates  (Manager only)
+export async function getTemplates(req: Request, res: Response, next: NextFunction) {
+  try {
+    const templates = await prisma.orderTemplate.findMany({
+      orderBy: [{ isActive: 'desc' }, { id: 'asc' }],
+    });
+    res.json(templates);
+  } catch (err) {
+    next(err);
+  }
+}
+
+// PATCH /api/orders/templates/:id/toggle  (Manager only)
+export async function toggleTemplate(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      return next(new AppError('Invalid template id', 400, ErrorCode.VALIDATION_ERROR));
+    }
+
+    const template = await prisma.orderTemplate.findUnique({ where: { id } });
+    if (!template) {
+      return next(new AppError('Order template not found', 404, ErrorCode.NOT_FOUND));
+    }
+
+    const updated = await prisma.orderTemplate.update({
+      where: { id },
+      data: { isActive: !template.isActive },
+    });
+
+    res.json(updated);
+  } catch (err) {
+    next(err);
+  }
+}
+
 // POST /api/orders/sync
 export async function syncOrders(req: Request, res: Response, next: NextFunction) {
   try {
