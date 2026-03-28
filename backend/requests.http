@@ -1,0 +1,49 @@
+### Register (Manager)
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test Manager",
+  "email": "manager@test.com",
+  "password": "password123",
+  "role": "MANAGER"
+}
+
+### Login
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "manager@test.com",
+  "password": "password123"
+}
+
+### Health check
+GET http://localhost:3000/api/health
+
+###
+# Copy the token from the login response and paste it below (replace YOUR_TOKEN_HERE)
+@token = YOUR_TOKEN_HERE
+
+### Create order template (Manager only)
+POST http://localhost:3000/api/orders/templates
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Open the store",
+  "dayOfWeek": 1,
+  "category": "daily"
+}
+
+### Sync / run rollover
+POST http://localhost:3000/api/orders/sync
+Authorization: Bearer {{token}}
+
+### Get orders for today
+GET http://localhost:3000/api/orders?startDate=2026-03-28&endDate=2026-03-28
+Authorization: Bearer {{token}}
+
+### Toggle instance (replace 1 with a real id from the GET response)
+PATCH http://localhost:3000/api/orders/instances/1/toggle
+Authorization: Bearer {{token}}

@@ -27,22 +27,15 @@ enum DayOfWeek {
   SATURDAY
 }
 
-enum OrderCategory {
-  FIXED
-  WEEKLY_A
-  WEEKLY_B
-}
-
 model User {
-  id              Int            @id @default(autoincrement())
-  name            String
-  email           String         @unique
-  passwordHash    String
-  role            Role           @default(WORKER)
-  createdAt       DateTime       @default(now())
-  taskInstances   TaskInstance[]
-  completedOrders Order[]        @relation("CompletedBy")
-  categories      UserCategory[]
+  id            Int            @id @default(autoincrement())
+  name          String
+  email         String         @unique
+  passwordHash  String
+  role          Role           @default(WORKER)
+  createdAt     DateTime       @default(now())
+  taskInstances TaskInstance[]
+  categories    UserCategory[]
 }
 
 model WorkerCategory {
@@ -87,12 +80,23 @@ model TaskInstance {
   completedAt DateTime?
 }
 
-model Order {
-  id            Int           @id @default(autoincrement())
-  title         String
-  description   String?
-  dayOfWeek     DayOfWeek?
-  category      OrderCategory
-  completedBy   User?         @relation("CompletedBy", fields: [completedById], references: [id])
-  completedById Int?
+model OrderTemplate {
+  id        Int             @id @default(autoincrement())
+  title     String
+  dayOfWeek Int?            // 0=Sun, 1=Mon … 6=Sat; null=floating
+  category  String          // 'daily' | 'floating_a' | 'floating_b'
+  isActive  Boolean         @default(true)
+  instances OrderInstance[]
+}
+
+model OrderInstance {
+  id           Int            @id @default(autoincrement())
+  title        String
+  originalDate DateTime
+  currentDate  DateTime
+  status       Boolean        @default(false)
+  category     String
+  isOverdue    Boolean        @default(false)
+  template     OrderTemplate? @relation(fields: [templateId], references: [id])
+  templateId   Int?
 }
