@@ -64,15 +64,31 @@ Orders screen only — no employees, no tasks in the UI.
 
 - Phase 3.5: Seed data + future-week virtual display ✓
   - Seed: 37 daily templates (5–7 per day, Sun–Fri, Hebrew titles) + 2 floating lists ("משמרת בוקר" 6 items, "משמרת ערב" 7 items)
-  - prisma/seedCurrentWeek.ts — one-off script to generate real instances for the current week without triggering rollover side-effects
+  - prisma/seedCurrentWeek.ts — one-off script to generate real instances for the current week without triggering rollover side-effects; re-run each Sunday
   - Future weeks: GET /api/orders/week derives display from templates (virtual:true, id<0) — no DB instances pre-created
-  - Manager can still add one-off instances to future dates; they appear as real (non-virtual) items immediately
+  - Manager can still add one-off instances to future dates; they appear alongside virtual items
   - Frontend: future-week checkboxes disabled; manager + button still active for one-offs
 
-## Current Phase
-Phase 4: Manager panel (template management, list creation)
-- Manager overlay: template list (GET /api/orders/templates), create/deactivate templates, create lists, sync button
+- Phase 4: Registration allowlist + user management ✓
+  - AllowedEmail model (id, email, role, createdAt) — manager pre-approves emails before anyone can register
+  - register() checks AllowedEmail; role is assigned from the allowlist entry, not self-assigned by the user
+  - requireManager middleware moved to src/middleware/auth.ts (shared by orders + users routes)
+  - GET /api/users — list all registered users (Manager only)
+  - GET /api/users/allowed-emails — list allowed emails (Manager only)
+  - POST /api/users/allowed-emails { email, role } — add entry (Manager only)
+  - DELETE /api/users/allowed-emails/:id — remove entry (Manager only)
+  - /register page: name + email + password; blocked with Hebrew error if email not in allowlist
+  - Login page ↔ Register page linked
+  - Manager tab bar in OrdersPage: "הזמנות" | "ניהול עובדים"
+  - UsersTab: add/remove allowed emails with role selector + badge; list of all registered users
 
-## Future Phases (infrastructure already in schema)
-- Phase 5: Cron job to auto-run daily rollover (replace manual POST /api/orders/sync)
-- Phase 6: Mobile app (/mobile — React Native + Expo)
+## Test credentials
+- Manager: manager@test.com / password123 (pre-existing, not gated by AllowedEmail)
+- Workers: must be added to AllowedEmail by manager before they can register
+
+## Current Phase
+Phase 5: Manager panel — template management (create/deactivate daily & floating templates, create new lists, manual sync trigger)
+
+## Future Phases
+- Phase 6: Cron job to auto-run daily rollover (replace manual POST /api/orders/sync)
+- Phase 7: Mobile app (/mobile — React Native + Expo)
