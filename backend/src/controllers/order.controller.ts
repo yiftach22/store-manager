@@ -6,6 +6,47 @@ import { AppError, ErrorCode } from '../types/errors';
 
 const DAY_LABELS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי'];
 
+// Creates a current-week instance for a template if the target day hasn't passed.
+async function createCurrentWeekInstance(template: {
+  id: number; title: string; category: string;
+  dayOfWeek: number | null; listId: number | null;
+}) {
+  const today = startOfDay(new Date());
+  const weekStart = startOfWeek(today, { weekStartsOn: 0 });
+  const weekEnd = endOfDay(addDays(weekStart, 5)); // Friday
+
+  if (today > weekEnd) return; // Saturday — rest day, skip
+
+  if (template.category === 'daily' && template.dayOfWeek !== null) {
+    const targetDate = startOfDay(addDays(weekStart, template.dayOfWeek));
+    if (targetDate < today) return; // past day
+    const existing = await prisma.orderInstance.findFirst({
+      where: { templateId: template.id, currentDate: { gte: targetDate, lte: endOfDay(targetDate) } },
+    });
+    if (!existing) {
+      await prisma.orderInstance.create({
+        data: {
+          title: template.title, originalDate: targetDate, currentDate: targetDate,
+          status: false, category: 'daily', isOverdue: false, templateId: template.id,
+        },
+      });
+    }
+  } else if (template.category === 'floating' && template.listId !== null) {
+    const existing = await prisma.orderInstance.findFirst({
+      where: { templateId: template.id, originalDate: weekStart },
+    });
+    if (!existing) {
+      await prisma.orderInstance.create({
+        data: {
+          title: template.title, originalDate: weekStart, currentDate: weekStart,
+          status: false, category: 'floating', isOverdue: false,
+          templateId: template.id, listId: template.listId,
+        },
+      });
+    }
+  }
+}
+
 // GET /api/orders/week?weekOf=YYYY-MM-DD
 export async function getWeek(req: Request, res: Response, next: NextFunction) {
   try {
@@ -169,6 +210,51 @@ export async function createList(req: Request, res: Response, next: NextFunction
   }
 }
 
+// PATCH /api/orders/lists/:id  (Manager only — rename)
+export async function renameList(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) return next(new AppError('Invalid list id', 400, ErrorCode.VALIDATION_ERROR));
+
+    const { name } = req.body as { name?: string };
+    if (!name?.trim()) {
+      return next(new AppError('name is required', 400, ErrorCode.VALIDATION_ERROR));
+    }
+
+    const list = await prisma.orderList.findUnique({ where: { id } });
+    if (!list) return next(new AppError('OrderList not found', 404, ErrorCode.NOT_FOUND));
+
+    const updated = await prisma.orderList.update({ where: { id }, data: { name: name.trim() } });
+    res.json(updated);
+  } catch (err) {
+    next(err);
+  }
+}
+
+// DELETE /api/orders/lists/:id  (Manager only — soft-delete list + deactivate templates + remove current-week unchecked instances)
+export async function deleteList(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) return next(new AppError('Invalid list id', 400, ErrorCode.VALIDATION_ERROR));
+
+    const list = await prisma.orderList.findUnique({ where: { id } });
+    if (!list) return next(new AppError('OrderList not found', 404, ErrorCode.NOT_FOUND));
+
+    const weekStart = startOfWeek(new Date(), { weekStartsOn: 0 });
+    const weekEnd = endOfDay(addDays(weekStart, 5));
+
+    await prisma.orderInstance.deleteMany({
+      where: { listId: id, status: false, currentDate: { gte: weekStart, lte: weekEnd } },
+    });
+    await prisma.orderTemplate.updateMany({ where: { listId: id }, data: { isActive: false } });
+    await prisma.orderList.update({ where: { id }, data: { isActive: false } });
+
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+}
+
 // POST /api/orders/templates  (Manager only)
 export async function createTemplate(req: Request, res: Response, next: NextFunction) {
   try {
@@ -203,6 +289,8 @@ export async function createTemplate(req: Request, res: Response, next: NextFunc
       data: { title, dayOfWeek: dayOfWeek ?? null, category, listId: listId ?? null },
     });
 
+    await createCurrentWeekInstance(template);
+
     res.status(201).json(template);
   } catch (err) {
     next(err);
@@ -235,6 +323,21 @@ export async function toggleTemplate(req: Request, res: Response, next: NextFunc
       where: { id },
       data: { isActive: !template.isActive },
     });
+
+    // When activating: create current-week instance if the day hasn't passed
+    if (updated.isActive) {
+      await createCurrentWeekInstance(updated);
+    }
+
+    // When deactivating: remove unchecked instances from the current week
+    if (!updated.isActive) {
+      const weekStart = startOfWeek(new Date(), { weekStartsOn: 0 });
+      const weekEnd = endOfDay(addDays(weekStart, 5));
+      await prisma.orderInstance.deleteMany({
+        where: { templateId: id, status: false, currentDate: { gte: weekStart, lte: weekEnd } },
+      });
+    }
+
     res.json(updated);
   } catch (err) {
     next(err);

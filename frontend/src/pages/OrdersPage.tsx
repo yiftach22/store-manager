@@ -7,6 +7,7 @@ import { WeekNav } from '../components/WeekNav';
 import { DayColumn } from '../components/DayColumn';
 import { FloatingList } from '../components/FloatingList';
 import { UsersTab } from '../components/UsersTab';
+import { EditTemplatesModal } from '../components/EditTemplatesModal';
 
 function getSundayOfWeek(d: Date): Date {
   return startOfWeek(d, { weekStartsOn: 0 });
@@ -23,6 +24,8 @@ export function OrdersPage() {
   const [weekData, setWeekData] = useState<WeekData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showNewListModal, setShowNewListModal] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const fetchWeek = useCallback(async (sunday: Date) => {
     setLoading(true);
@@ -94,6 +97,17 @@ export function OrdersPage() {
     });
   }
 
+  function handleListDeleted(listId: number) {
+    setWeekData((prev) => prev && { ...prev, lists: prev.lists.filter((l) => l.id !== listId) });
+  }
+
+  function handleListRenamed(listId: number, name: string) {
+    setWeekData((prev) => prev && {
+      ...prev,
+      lists: prev.lists.map((l) => l.id === listId ? { ...l, name } : l),
+    });
+  }
+
   const today = startOfDay(new Date());
 
   return (
@@ -150,7 +164,17 @@ export function OrdersPage() {
             {weekData && !loading && (
               <>
                 <section>
-                  <h2 className="text-sm font-semibold text-gray-500 mb-3">הזמנות יומיות</h2>
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-sm font-semibold text-gray-500">הזמנות יומיות</h2>
+                    {isManager && (
+                      <button
+                        onClick={() => setIsEditMode((v) => !v)}
+                        className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${isEditMode ? 'bg-orange-100 border-orange-300 text-orange-700' : 'border-gray-300 text-gray-500 hover:border-gray-400'}`}
+                      >
+                        {isEditMode ? 'סיום עריכה' : 'עריכת תבניות'}
+                      </button>
+                    )}
+                  </div>
                   <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
                     {weekData.days.map((day) => {
                       const dayDate = startOfDay(new Date(day.date + 'T00:00:00'));
@@ -164,27 +188,46 @@ export function OrdersPage() {
                           isPast={isPast}
                           isFuture={isFutureWeek}
                           isManager={isManager}
+                          isEditMode={isEditMode}
                           onToggle={handleToggle}
                           onAdded={handleDayAdded}
+                          onTemplatesChanged={() => fetchWeek(weekStart)}
                         />
                       );
                     })}
                   </div>
                 </section>
 
-                {weekData.lists.length > 0 && (
+                {(weekData.lists.length > 0 || isManager) && (
                   <section>
-                    <h2 className="text-sm font-semibold text-gray-500 mb-3">רשימות שבועיות</h2>
+                    <div className="flex items-center justify-between mb-3">
+                      <h2 className="text-sm font-semibold text-gray-500">רשימות שבועיות</h2>
+                      {isManager && isEditMode && (
+                        <button
+                          onClick={() => setShowNewListModal(true)}
+                          className="text-xs text-blue-500 hover:text-blue-700 font-medium"
+                        >
+                          + הוסף רשימה
+                        </button>
+                      )}
+                    </div>
+                    {weekData.lists.length === 0 && (
+                      <div className="text-center text-gray-400 text-sm py-4">אין רשימות שבועיות</div>
+                    )}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {weekData.lists.map((list) => (
                         <FloatingList
                           key={list.id}
                           list={list}
                           isManager={isManager}
+                          isEditMode={isEditMode}
                           isFuture={isFutureWeek}
                           weekStart={weekData.weekStart}
                           onToggle={handleToggle}
                           onAdded={handleListAdded}
+                          onListDeleted={handleListDeleted}
+                          onListRenamed={handleListRenamed}
+                          onTemplatesChanged={() => fetchWeek(weekStart)}
                         />
                       ))}
                     </div>
@@ -199,6 +242,14 @@ export function OrdersPage() {
           </>
         )}
       </main>
+
+      {showNewListModal && (
+        <EditTemplatesModal
+          mode={{ type: 'new-list' }}
+          onClose={() => setShowNewListModal(false)}
+          onListCreated={() => { setShowNewListModal(false); fetchWeek(weekStart); }}
+        />
+      )}
     </div>
   );
 }

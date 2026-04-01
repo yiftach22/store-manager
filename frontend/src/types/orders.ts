@@ -29,3 +29,18 @@ export interface WeekData {
   days: DayData[];
   lists: ListData[];
 }
+
+export interface OrderTemplate {
+  id: number;
+  title: string;
+  dayOfWeek: number | null;
+  category: string;
+  isActive: boolean;
+  listId: number | null;
+}
+
+export interface OrderList {
+  id: number;
+  name: string;
+  isActive: boolean;
+}

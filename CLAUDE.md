@@ -82,13 +82,27 @@ Orders screen only — no employees, no tasks in the UI.
   - Manager tab bar in OrdersPage: "הזמנות" | "ניהול עובדים"
   - UsersTab: add/remove allowed emails with role selector + badge; list of all registered users
 
+- Phase 5: Inline template management ✓
+  - EditTemplatesModal (createPortal → renders at document.body, immune to parent opacity)
+  - Day columns: pencil ✎ button in header opens modal for that day's templates
+  - Floating lists: "ערוך" + "מחק" buttons in card header; delete = soft-delete list + deactivate templates + remove current-week unchecked instances
+  - "עריכת תבניות" toggle button next to "הזמנות יומיות" section title — edit mode shows all template controls; normal mode shows one-time add buttons only
+  - "+ הוסף רשימה" button (edit mode only) opens modal to create list + items in one flow
+  - New API endpoints (Manager only):
+    - PATCH /api/orders/templates/:id/toggle — now also deletes current-week unchecked instances on deactivate; creates current-week instance on reactivate (today/future days only)
+    - POST /api/orders/templates — now creates current-week instance immediately if day hasn't passed
+    - PATCH /api/orders/lists/:id — rename list
+    - DELETE /api/orders/lists/:id — soft-delete list
+  - Template add/toggle triggers fetchWeek() refresh so board updates live
+  - Past-day columns: content faded (opacity-70) but edit button remains full opacity; modal unaffected by parent opacity via portal
+
 ## Test credentials
 - Manager: manager@test.com / password123 (pre-existing, not gated by AllowedEmail)
 - Workers: must be added to AllowedEmail by manager before they can register
 
 ## Current Phase
-Phase 5: Manager panel — template management (create/deactivate daily & floating templates, create new lists, manual sync trigger)
+Phase 6: Realtime updates — socket.io broadcasts instance toggle events so all connected clients see checkbox changes live
 
 ## Future Phases
-- Phase 6: Cron job to auto-run daily rollover (replace manual POST /api/orders/sync)
-- Phase 7: Mobile app (/mobile — React Native + Expo)
+- Phase 7: Cron job to auto-run daily rollover (replace manual POST /api/orders/sync)
+- Phase 8: Mobile app (/mobile — React Native + Expo)
