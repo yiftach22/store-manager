@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { startOfWeek, addWeeks, subWeeks, format, isSameDay, isBefore, isAfter, startOfDay } from 'date-fns';
+import { io } from 'socket.io-client';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import type { WeekData, OrderInstance } from '../types/orders';
@@ -26,6 +27,35 @@ export function OrdersPage() {
   const [error, setError] = useState('');
   const [showNewListModal, setShowNewListModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+
+  // Realtime updates — listen for toggle events from other clients
+  useEffect(() => {
+    const socket = io(import.meta.env.VITE_SOCKET_URL ?? '', {
+      auth: { token: localStorage.getItem('token') ?? '' },
+    });
+
+    socket.on('instance:toggled', ({ id, status }: { id: number; status: boolean }) => {
+      setWeekData((prev) => {
+        if (!prev) return prev;
+        const applyUpdate = (instances: OrderInstance[]) => {
+          if (!instances.some((i) => i.id === id)) return instances;
+          const next = instances.map((i) => (i.id === id ? { ...i, status } : i));
+          return [
+            ...next.filter((i) => !i.status && i.isOverdue),
+            ...next.filter((i) => !i.status && !i.isOverdue),
+            ...next.filter((i) => i.status),
+          ];
+        };
+        return {
+          ...prev,
+          days: prev.days.map((d) => ({ ...d, instances: applyUpdate(d.instances) })),
+          lists: prev.lists.map((l) => ({ ...l, instances: applyUpdate(l.instances) })),
+        };
+      });
+    });
+
+    return () => { socket.disconnect(); };
+  }, []);
 
   const fetchWeek = useCallback(async (sunday: Date) => {
     setLoading(true);

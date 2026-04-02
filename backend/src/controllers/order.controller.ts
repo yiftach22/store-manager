@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { parseISO, isValid, startOfDay, endOfDay, startOfWeek, addDays, format } from 'date-fns';
+import { Server } from 'socket.io';
 import { prisma } from '../prisma/client';
 import { processDailyRollover } from '../services/order.service';
 import { AppError, ErrorCode } from '../types/errors';
@@ -402,6 +403,10 @@ export async function toggleInstance(req: Request, res: Response, next: NextFunc
       where: { id },
       data: { status: !instance.status },
     });
+
+    const io = req.app.get('io') as Server;
+    io.emit('instance:toggled', { id: updated.id, status: updated.status });
+
     res.json(updated);
   } catch (err) {
     next(err);

@@ -100,9 +100,15 @@ Orders screen only — no employees, no tasks in the UI.
 - Manager: manager@test.com / password123 (pre-existing, not gated by AllowedEmail)
 - Workers: must be added to AllowedEmail by manager before they can register
 
+- Phase 6: Realtime updates via socket.io ✓
+  - backend: http.createServer wraps Express; socket.io Server attached with CORS + JWT auth middleware
+  - toggleInstance emits `instance:toggled` { id, status } to all connected clients after DB write
+  - frontend: OrdersPage connects on mount (JWT in handshake auth), listens for `instance:toggled`, applies authoritative status + resort to local weekData state
+  - Optimistic updates preserved — socket echo from own toggle is idempotent
+  - Dev: VITE_SOCKET_URL=http://localhost:3000 in frontend/.env.development
+
 ## Current Phase
-Phase 6: Realtime updates — socket.io broadcasts instance toggle events so all connected clients see checkbox changes live
+Phase 7: Cron job to auto-run daily rollover (replace manual POST /api/orders/sync)
 
 ## Future Phases
-- Phase 7: Cron job to auto-run daily rollover (replace manual POST /api/orders/sync)
 - Phase 8: Mobile app (/mobile — React Native + Expo)
