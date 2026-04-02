@@ -107,8 +107,14 @@ Orders screen only — no employees, no tasks in the UI.
   - Optimistic updates preserved — socket echo from own toggle is idempotent
   - Dev: VITE_SOCKET_URL=http://localhost:3000 in frontend/.env.development
 
+- Phase 7: Cron job for daily rollover ✓
+  - node-cron scheduled at 00:01 every day in index.ts
+  - Calls processDailyRollover(new Date()) — service already skips Saturday internally
+  - Manual POST /api/orders/sync kept as manager backup trigger
+  - Logs result (updated/created counts) and errors to console
+
 ## Current Phase
-Phase 7: Cron job to auto-run daily rollover (replace manual POST /api/orders/sync)
+Phase 8: Mobile app (/mobile — React Native + Expo)
 
 ## Future Phases
-- Phase 8: Mobile app (/mobile — React Native + Expo)
+(none planned)
