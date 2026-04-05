@@ -1,0 +1,45 @@
+import { getDay, startOfDay, startOfWeek } from 'date-fns';
+import { prisma } from '../prisma/client';
+
+export async function generateTaskInstances(today: Date) {
+  const isSaturday = getDay(today) === 6;
+  if (isSaturday) return { created: 0 };
+
+  const isSunday = getDay(today) === 0;
+  const todayStart = startOfDay(today);
+  let created = 0;
+
+  const roles = await prisma.jobRole.findMany({ where: { isActive: true } });
+
+  for (const role of roles) {
+    const frequencies = isSunday ? ['daily', 'weekly'] : ['daily'];
+    const templates = await prisma.taskTemplate.findMany({
+      where: { roleId: role.id, isActive: true, frequency: { in: frequencies } },
+    });
+
+    for (const t of templates) {
+      // Weekly instances are anchored to Sunday of the current week
+      const instanceDate = t.frequency === 'weekly' ? startOfWeek(today, { weekStartsOn: 0 }) : todayStart;
+
+      const exists = await prisma.taskInstance.findFirst({
+        where: { templateId: t.id, date: instanceDate },
+      });
+
+      if (!exists) {
+        await prisma.taskInstance.create({
+          data: {
+            title: t.title,
+            frequency: t.frequency,
+            status: false,
+            date: instanceDate,
+            roleId: role.id,
+            templateId: t.id,
+          },
+        });
+        created++;
+      }
+    }
+  }
+
+  return { created };
+}

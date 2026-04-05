@@ -66,3 +66,29 @@ export async function removeAllowedEmail(req: Request, res: Response, next: Next
     next(err);
   }
 }
+
+// PATCH /api/users/:id/role
+export async function assignRole(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = parseInt(req.params.id, 10);
+    if (isNaN(userId)) return next(new AppError('Invalid id', 400, ErrorCode.VALIDATION_ERROR));
+
+    const { roleId } = req.body as { roleId?: number | null };
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return next(new AppError('User not found', 404, ErrorCode.NOT_FOUND));
+
+    // Remove any existing role assignment
+    await prisma.userJobRole.deleteMany({ where: { userId } });
+
+    if (roleId != null) {
+      const role = await prisma.jobRole.findUnique({ where: { id: roleId } });
+      if (!role) return next(new AppError('Role not found', 404, ErrorCode.NOT_FOUND));
+      await prisma.userJobRole.create({ data: { userId, roleId } });
+    }
+
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+}

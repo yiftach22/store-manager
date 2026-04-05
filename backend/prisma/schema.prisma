@@ -12,72 +12,59 @@ enum Role {
   WORKER
 }
 
-enum Frequency {
-  DAILY
-  WEEKLY
-}
-
-enum DayOfWeek {
-  SUNDAY
-  MONDAY
-  TUESDAY
-  WEDNESDAY
-  THURSDAY
-  FRIDAY
-  SATURDAY
-}
-
 model User {
-  id            Int            @id @default(autoincrement())
-  name          String
-  email         String         @unique
-  passwordHash  String
-  role          Role           @default(WORKER)
-  createdAt     DateTime       @default(now())
-  taskInstances TaskInstance[]
-  categories    UserCategory[]
+  id           Int          @id @default(autoincrement())
+  name         String
+  email        String       @unique
+  passwordHash String
+  role         Role         @default(WORKER)
+  createdAt    DateTime     @default(now())
+  jobRoles     UserJobRole[]
 }
 
-model WorkerCategory {
-  id          String         @id @default(cuid())
-  name        String         @unique
-  description String?
-  isActive    Boolean        @default(true)
-  createdAt   DateTime       @default(now())
-  tasks       TaskTemplate[]
-  users       UserCategory[]
+// Job role / position (e.g. קופאי, מלצר) — manager-created, distinct from auth Role enum
+model JobRole {
+  id        Int           @id @default(autoincrement())
+  name      String
+  isActive  Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  templates TaskTemplate[]
+  instances TaskInstance[]
+  users     UserJobRole[]
 }
 
-model UserCategory {
-  user        User           @relation(fields: [userId], references: [id])
-  userId      Int
-  category    WorkerCategory @relation(fields: [categoryId], references: [id])
-  categoryId  String
-  assignedAt  DateTime       @default(now())
+// Many-to-many: user ↔ job role (enforced as one per user at app level for now)
+model UserJobRole {
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  role       JobRole  @relation(fields: [roleId], references: [id])
+  roleId     Int
+  assignedAt DateTime @default(now())
 
-  @@id([userId, categoryId])
+  @@id([userId, roleId])
 }
 
 model TaskTemplate {
-  id          Int            @id @default(autoincrement())
-  title       String
-  description String?
-  frequency   Frequency
-  category    WorkerCategory @relation(fields: [categoryId], references: [id])
-  categoryId  String
-  isActive    Boolean        @default(true)
-  instances   TaskInstance[]
+  id        Int            @id @default(autoincrement())
+  title     String
+  frequency String         // 'daily' | 'weekly'
+  isActive  Boolean        @default(true)
+  role      JobRole        @relation(fields: [roleId], references: [id])
+  roleId    Int
+  instances TaskInstance[]
 }
 
+// Shared per role — one instance per template per day/week, checked off by any worker in the role
 model TaskInstance {
-  id          Int          @id @default(autoincrement())
-  template    TaskTemplate @relation(fields: [templateId], references: [id])
-  templateId  Int
-  user        User         @relation(fields: [userId], references: [id])
-  userId      Int
-  weekStart   DateTime
-  completed   Boolean      @default(false)
-  completedAt DateTime?
+  id         Int           @id @default(autoincrement())
+  title      String
+  frequency  String        // 'daily' | 'weekly'
+  status     Boolean       @default(false)
+  date       DateTime      // daily: specific date; weekly: week's Sunday
+  role       JobRole       @relation(fields: [roleId], references: [id])
+  roleId     Int
+  template   TaskTemplate? @relation(fields: [templateId], references: [id])
+  templateId Int?
 }
 
 model AllowedEmail {

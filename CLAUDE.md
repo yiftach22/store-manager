@@ -113,8 +113,20 @@ Orders screen only — no employees, no tasks in the UI.
   - Manual POST /api/orders/sync kept as manager backup trigger
   - Logs result (updated/created counts) and errors to console
 
+- Phase 8: Tasks DB + Backend API ✓
+  - Schema: JobRole, UserJobRole, TaskTemplate, TaskInstance (all with Int ids)
+  - Migration: tasks-schema
+  - Seed: prisma/seedTasks.ts — 3 roles (קופאי, מלצר, אחראי משמרת) + 10 templates total
+  - GET/POST/PATCH/DELETE /api/roles — role CRUD (Manager only)
+  - GET/POST/PATCH/DELETE /api/roles/:roleId/templates — template CRUD (Manager only)
+  - GET /api/tasks/status?date=YYYY-MM-DD — all active roles with daily+weekly instances (Manager only)
+  - PATCH /api/tasks/instances/:id/toggle — flip status, emits task:toggled socket event (all roles)
+  - PATCH /api/users/:id/role { roleId: number|null } — assign/remove role (Manager only)
+  - generateTaskInstances(today) in task.service.ts; called by cron at 00:01 alongside orders rollover
+  - Daily instances: Sun–Fri; Weekly instances: Sundays only; Saturday skipped entirely
+
 ## Current Phase
-Phase 8: Tasks system — DB schema + backend API
+Phase 9: Task Management screen (web)
 
 ## Tasks System Design (Phases 8–12)
 

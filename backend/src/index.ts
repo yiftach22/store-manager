@@ -7,6 +7,7 @@ import { createApp } from './app';
 import { config } from './config/env';
 import { prisma } from './prisma/client';
 import { processDailyRollover } from './services/order.service';
+import { generateTaskInstances } from './services/task.service';
 
 async function main() {
   const app = createApp();
@@ -33,12 +34,20 @@ async function main() {
 
   // Daily rollover at 00:01 every day (Sun–Sat; service skips Saturday internally)
   cron.schedule('1 0 * * *', async () => {
+    const now = new Date();
     console.log('[cron] Running daily rollover...');
     try {
-      const result = await processDailyRollover(new Date());
+      const result = await processDailyRollover(now);
       console.log(`[cron] Rollover complete — updated: ${result.updated}, created: ${result.created}`);
     } catch (err) {
       console.error('[cron] Rollover failed:', err);
+    }
+    console.log('[cron] Generating task instances...');
+    try {
+      const result = await generateTaskInstances(now);
+      console.log(`[cron] Task generation complete — created: ${result.created}`);
+    } catch (err) {
+      console.error('[cron] Task generation failed:', err);
     }
   });
 
