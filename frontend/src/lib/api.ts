@@ -8,3 +8,15 @@ api.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+
+// Auto-logout on 401 (expired or invalid token)
+let _logout: (() => void) | null = null;
+export function setLogoutCallback(fn: () => void) { _logout = fn; }
+
+api.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    if (error.response?.status === 401) _logout?.();
+    return Promise.reject(error);
+  }
+);

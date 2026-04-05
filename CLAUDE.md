@@ -114,7 +114,101 @@ Orders screen only — no employees, no tasks in the UI.
   - Logs result (updated/created counts) and errors to console
 
 ## Current Phase
-Phase 8: Mobile app (/mobile — React Native + Expo)
+Phase 8: Tasks system — DB schema + backend API
+
+## Tasks System Design (Phases 8–12)
+
+### Concepts
+- **Role (תפקיד)**: A job position the manager creates freely (e.g. קופאי, מלצר, אחראי משמרת).
+  - Manager can create / rename / delete roles
+  - Many-to-many with users (UserRole junction table), but each user has at most one role for now
+  - A user can have no role ("עובד" — just a worker with no tasks)
+- **TaskTemplate**: A recurring task assigned to a role
+  - `frequency`: 'daily' (repeats every workday Sun–Fri) or 'weekly' (once per week)
+  - No day-of-week specificity for daily tasks — they appear every workday
+  - Manager can add / edit title / deactivate per template
+- **TaskInstance**: The generated checklist item for a given day or week
+  - Daily instances: one per active daily template per role, generated each workday at 00:01
+  - Weekly instances: one per active weekly template per role, generated each Sunday at 00:01
+  - **Shared per role** — all workers with the same role share the same instance (checking it marks it done for everyone)
+  - **No rollover** — uncompleted instances are NOT carried forward; each period starts fresh
+  - Old instances kept in DB for history (manager can navigate to past days/weeks)
+
+### DB Schema additions
+```
+Role            id, name, isActive, createdAt
+UserRole        userId, roleId  (@@id([userId, roleId]))  ← many-to-many junction
+TaskTemplate    id, title, frequency(daily|weekly), isActive, roleId
+TaskInstance    id, title, frequency, status(bool), date(DateTime), roleId, templateId?
+```
+User model: add `roles UserRole[]` relation (existing `role String` field = auth role MANAGER|WORKER, unchanged)
+
+### API endpoints (all Manager only unless noted)
+```
+GET    /api/roles                          — list all active roles
+POST   /api/roles                          — create role { name }
+PATCH  /api/roles/:id                      — rename role { name }
+DELETE /api/roles/:id                      — soft-delete role (isActive=false)
+
+GET    /api/roles/:roleId/tasks            — list templates for a role
+POST   /api/roles/:roleId/tasks            — create template { title, frequency }
+PATCH  /api/tasks/:id                      — edit template { title } or toggle isActive
+DELETE /api/tasks/:id                      — soft-delete template
+
+GET    /api/tasks/status?date=YYYY-MM-DD   — all roles with their instances for that day/week
+PATCH  /api/tasks/instances/:id/toggle     — flip completion (all roles — workers use this)
+
+PATCH  /api/users/:id/role                 — assign role to user { roleId: number|null }
+```
+
+### Task generation (cron — added to existing 00:01 job in index.ts)
+- **Daily** (every workday 00:01, skip Saturday): for each active role, create TaskInstance per active daily template for today
+- **Weekly** (Sunday 00:01): for each active role, create TaskInstance per active weekly template for this week (date = Sunday)
+- Existing orders rollover runs in the same cron job
+
+### Manager web screens (new routes in frontend)
+1. **ניהול משימות** (`/tasks`): role cards (daily + weekly task sections), edit mode to add/edit/delete roles and templates
+2. **מעקב משימות** (`/tasks/status`): role cards with daily + weekly progress bars; click → detail list; date/week navigation for history
+
+### Navigation update
+- Top nav bar (or tab bar) extended with: ניהול משימות | מעקב משימות | (existing orders + users tabs remain)
+
+### User management update
+- UsersTab: add role dropdown per registered user (calls PATCH /api/users/:id/role)
+- Dropdown options: all active roles + "ללא תפקיד" (no role)
+
+## Phases
+
+### Phase 8: Tasks DB + Backend API
+- Prisma schema: Role, UserRole, TaskTemplate, TaskInstance + User relation
+- Migration + seed (example roles and tasks)
+- All API endpoints above
+- Task generation service function (reusable, called by cron)
+- Update cron in index.ts to also generate task instances
+
+### Phase 9: Task Management screen (web)
+- New route /tasks (manager only)
+- Role management: create / rename / delete roles
+- Per-role task editing: add / edit title / deactivate templates, split daily/weekly
+- Edit mode pattern (consistent with orders screen)
+
+### Phase 10: Task Status Follow screen (web)
+- New route /tasks/status (manager only)
+- Role cards with daily + weekly progress bars (X/Y completed)
+- Date navigation (previous/next day for daily, previous/next week for weekly)
+- Click role card → detail modal or expanded view: done ✓ and undone ✗ task list
+
+### Phase 11: User management update (web)
+- Add role dropdown to each registered user row in UsersTab
+- Calls PATCH /api/users/:id/role on change
+
+### Phase 12: Mobile app (React Native + Expo)
+- Worker-facing app in /mobile
+- Auth: login screen → JWT stored in AsyncStorage
+- Two tabs: יומי (daily tasks) | שבועי (weekly tasks)
+- Shows tasks for the worker's assigned role
+- Tap to check/uncheck (calls PATCH /api/tasks/instances/:id/toggle)
+- Realtime updates via socket.io-client (same pattern as web)
 
 ## Future Phases
 (none planned)

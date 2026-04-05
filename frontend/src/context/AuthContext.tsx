@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { api } from '../lib/api';
+import { api, setLogoutCallback } from '../lib/api';
 
 interface User {
   id: number;
@@ -45,6 +45,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
     setUser(null);
   }
+
+  useEffect(() => { setLogoutCallback(logout); }, []);
 
   return (
     <AuthContext.Provider value={{ user, token, isLoading, login, logout }}>
