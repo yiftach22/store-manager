@@ -125,8 +125,24 @@ Orders screen only — no employees, no tasks in the UI.
   - generateTaskInstances(today) in task.service.ts; called by cron at 00:01 alongside orders rollover
   - Daily instances: Sun–Fri; Weekly instances: Sundays only; Saturday skipped entirely
 
+- Phase 9: Task Management screen (web) ✓
+  - `/tasks` route (manager only; redirects workers to `/`)
+  - NavBar component shared across all pages: הזמנות | ניהול משימות | מעקב משימות (manager links)
+  - TasksPage: role cards grid, edit mode toggle ("עריכת תפקידים" / "סיום עריכה")
+  - RoleCard: inline rename (pencil → input), inline delete confirm, per-section (יומי/שבועי) template add + toggle + delete
+  - Edit mode: shows inactive templates (strikethrough); normal mode: active only
+  - OrdersPage: replaced logo/user header row with NavBar
+
+- Phase 10: Task Status Follow screen (web) ✓
+  - `/tasks/status` route (manager only)
+  - Date navigation: prev/next day buttons + "היום" jump button
+  - Fetches GET /api/tasks/status?date=YYYY-MM-DD on each date change
+  - RoleStatusCard: collapsed shows יומי + שבועי progress bars (blue/green, X/Y format); click to expand
+  - Expanded: task list with ✓ (green) / ○ (gray) per instance
+  - Filters out roles with no instances for the selected date
+
 ## Current Phase
-Phase 9: Task Management screen (web)
+Phase 11: User management update (web)
 
 ## Tasks System Design (Phases 8–12)
 

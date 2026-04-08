@@ -9,6 +9,7 @@ import { DayColumn } from '../components/DayColumn';
 import { FloatingList } from '../components/FloatingList';
 import { UsersTab } from '../components/UsersTab';
 import { EditTemplatesModal } from '../components/EditTemplatesModal';
+import { NavBar } from '../components/NavBar';
 
 function getSundayOfWeek(d: Date): Date {
   return startOfWeek(d, { weekStartsOn: 0 });
@@ -17,7 +18,7 @@ function getSundayOfWeek(d: Date): Date {
 type Tab = 'orders' | 'users';
 
 export function OrdersPage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const isManager = user?.role === 'MANAGER';
   const [activeTab, setActiveTab] = useState<Tab>('orders');
 
@@ -142,17 +143,10 @@ export function OrdersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col" dir="rtl">
-      {/* Top bar */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-lg font-bold text-gray-800">ניצת</h1>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-500">{user?.name}</span>
-            {isManager && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">מנהל</span>}
-            <button onClick={logout} className="text-sm text-gray-400 hover:text-gray-600">יציאה</button>
-          </div>
-        </div>
+      <NavBar />
 
+      {/* Tab bar + week nav */}
+      <header className="bg-white shadow-sm">
         {/* Tab bar — manager only */}
         {isManager && (
           <div className="flex border-b border-gray-200 px-4">

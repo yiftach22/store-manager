@@ -4,6 +4,8 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { OrdersPage } from './pages/OrdersPage';
+import { TasksPage } from './pages/TasksPage';
+import { TaskStatusPage } from './pages/TaskStatusPage';
 
 export function Router() {
   return (
@@ -17,6 +19,22 @@ export function Router() {
             element={
               <ProtectedRoute>
                 <OrdersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tasks"
+            element={
+              <ProtectedRoute>
+                <TasksPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tasks/status"
+            element={
+              <ProtectedRoute>
+                <TaskStatusPage />
               </ProtectedRoute>
             }
           />
