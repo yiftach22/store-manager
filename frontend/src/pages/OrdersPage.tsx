@@ -140,6 +140,23 @@ export function OrdersPage() {
   }
 
   const today = startOfDay(new Date());
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState('');
+
+  async function handleManualSync() {
+    setSyncing(true);
+    setSyncMsg('');
+    try {
+      await api.post('/api/orders/sync');
+      setSyncMsg('הרולאובר הופעל בהצלחה');
+      fetchWeek(weekStart);
+    } catch {
+      setSyncMsg('שגיאה בהפעלת הרולאובר');
+    } finally {
+      setSyncing(false);
+      setTimeout(() => setSyncMsg(''), 4000);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col" dir="rtl">
@@ -191,12 +208,26 @@ export function OrdersPage() {
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="text-sm font-semibold text-gray-500">הזמנות יומיות</h2>
                     {isManager && (
-                      <button
-                        onClick={() => setIsEditMode((v) => !v)}
-                        className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${isEditMode ? 'bg-orange-100 border-orange-300 text-orange-700' : 'border-gray-300 text-gray-500 hover:border-gray-400'}`}
-                      >
-                        {isEditMode ? 'סיום עריכה' : 'עריכת תבניות'}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        {syncMsg && (
+                          <span className={`text-xs ${syncMsg.includes('שגיאה') ? 'text-red-500' : 'text-green-600'}`}>
+                            {syncMsg}
+                          </span>
+                        )}
+                        <button
+                          onClick={handleManualSync}
+                          disabled={syncing}
+                          className="text-xs px-2.5 py-1 rounded-full border border-gray-300 text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors disabled:opacity-50"
+                        >
+                          {syncing ? 'מפעיל...' : 'הפעל רולאובר'}
+                        </button>
+                        <button
+                          onClick={() => setIsEditMode((v) => !v)}
+                          className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${isEditMode ? 'bg-orange-100 border-orange-300 text-orange-700' : 'border-gray-300 text-gray-500 hover:border-gray-400'}`}
+                        >
+                          {isEditMode ? 'סיום עריכה' : 'עריכת תבניות'}
+                        </button>
+                      </div>
                     )}
                   </div>
                   <div className="grid grid-cols-3 md:grid-cols-6 gap-3">

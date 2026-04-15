@@ -124,10 +124,18 @@ export async function getWeek(req: Request, res: Response, next: NextFunction) {
 
     // Current/past week: return actual instances from DB
     const weekEnd = endOfDay(addDays(weekStart, 5));
+    const now = startOfDay(new Date());
     const dailyInstances = await prisma.orderInstance.findMany({
       where: { currentDate: { gte: weekStartDay, lte: weekEnd }, listId: null },
       include: { template: true },
     });
+
+    // An instance is overdue (red) only if:
+    //   1. It is uncompleted
+    //   2. Its day has already passed
+    //   3. It was created on time (createdAt <= end of its day) — late-added instances are NOT red
+    const computeOverdue = (inst: { status: boolean; currentDate: Date; createdAt: Date }) =>
+      !inst.status && inst.currentDate < now && inst.createdAt <= endOfDay(inst.currentDate);
 
     const days = Array.from({ length: 6 }, (_, i) => {
       const date = addDays(weekStart, i);
@@ -136,17 +144,21 @@ export async function getWeek(req: Request, res: Response, next: NextFunction) {
       const dayEnd = endOfDay(date);
       const instances = dailyInstances
         .filter((inst) => inst.currentDate >= dayStart && inst.currentDate <= dayEnd)
+        .map((inst) => ({ ...inst, isOverdue: computeOverdue(inst) }))
         .sort(sortInstances);
       return { date: dateStr, dayOfWeek: i, label: DAY_LABELS[i], instances };
     });
 
     const lists = await Promise.all(
       activeLists.map(async (list) => {
-        const instances = await prisma.orderInstance.findMany({
+        const rawInstances = await prisma.orderInstance.findMany({
           where: { listId: list.id, originalDate: weekStartDay },
           include: { template: true },
         });
-        return { id: list.id, name: list.name, instances: instances.sort(sortInstances) };
+        const instances = rawInstances
+          .map((inst) => ({ ...inst, isOverdue: computeOverdue(inst) }))
+          .sort(sortInstances);
+        return { id: list.id, name: list.name, instances };
       })
     );
 
@@ -399,9 +411,13 @@ export async function toggleInstance(req: Request, res: Response, next: NextFunc
     const instance = await prisma.orderInstance.findUnique({ where: { id } });
     if (!instance) return next(new AppError('Order instance not found', 404, ErrorCode.NOT_FOUND));
 
+    const newStatus = !instance.status;
     const updated = await prisma.orderInstance.update({
       where: { id },
-      data: { status: !instance.status },
+      data: {
+        status: newStatus,
+        completedAt: newStatus ? new Date() : null,
+      },
     });
 
     const io = req.app.get('io') as Server;

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import type { JobRole } from '../types/tasks';
 
 interface User {
   id: number;
@@ -7,6 +8,7 @@ interface User {
   email: string;
   role: 'MANAGER' | 'WORKER';
   createdAt: string;
+  jobRoles: { roleId: number; role: { id: number; name: string } }[];
 }
 
 interface AllowedEmail {
@@ -19,18 +21,21 @@ interface AllowedEmail {
 export function UsersTab() {
   const [users, setUsers] = useState<User[]>([]);
   const [allowed, setAllowed] = useState<AllowedEmail[]>([]);
+  const [jobRoles, setJobRoles] = useState<JobRole[]>([]);
   const [newEmail, setNewEmail] = useState('');
   const [newRole, setNewRole] = useState<'WORKER' | 'MANAGER'>('WORKER');
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState('');
 
   async function load() {
-    const [u, a] = await Promise.all([
+    const [u, a, r] = await Promise.all([
       api.get<User[]>('/api/users'),
       api.get<AllowedEmail[]>('/api/users/allowed-emails'),
+      api.get<JobRole[]>('/api/roles'),
     ]);
     setUsers(u.data);
     setAllowed(a.data);
+    setJobRoles(r.data);
   }
 
   useEffect(() => { load(); }, []);
@@ -58,6 +63,27 @@ export function UsersTab() {
   async function handleRemove(id: number) {
     await api.delete(`/api/users/allowed-emails/${id}`);
     setAllowed((prev) => prev.filter((a) => a.id !== id));
+  }
+
+  async function handleRoleChange(userId: number, roleId: number | null) {
+    setUsers((prev) =>
+      prev.map((u) =>
+        u.id === userId
+          ? {
+              ...u,
+              jobRoles:
+                roleId == null
+                  ? []
+                  : [{ roleId, role: jobRoles.find((r) => r.id === roleId)! }],
+            }
+          : u
+      )
+    );
+    try {
+      await api.patch(`/api/users/${userId}/role`, { roleId });
+    } catch {
+      load();
+    }
   }
 
   const registeredEmails = new Set(users.map((u) => u.email));
@@ -144,6 +170,19 @@ export function UsersTab() {
                   <span className={`text-xs px-2 py-0.5 rounded-full ${u.role === 'MANAGER' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
                     {u.role === 'MANAGER' ? 'מנהל' : 'עובד'}
                   </span>
+                  <select
+                    value={u.jobRoles[0]?.role?.id ?? ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      handleRoleChange(u.id, val === '' ? null : parseInt(val, 10));
+                    }}
+                    className="border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+                  >
+                    <option value="">ללא תפקיד</option>
+                    {jobRoles.map((r) => (
+                      <option key={r.id} value={r.id}>{r.name}</option>
+                    ))}
+                  </select>
                   <span className="text-xs text-gray-400">
                     {new Date(u.createdAt).toLocaleDateString('he-IL')}
                   </span>

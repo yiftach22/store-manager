@@ -102,6 +102,8 @@ model OrderInstance {
   status       Boolean        @default(false)
   category     String
   isOverdue    Boolean        @default(false)
+  completedAt  DateTime?
+  createdAt    DateTime       @default(now())
   template     OrderTemplate? @relation(fields: [templateId], references: [id])
   templateId   Int?
   list         OrderList?     @relation(fields: [listId], references: [id])

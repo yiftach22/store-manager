@@ -29,8 +29,8 @@ export function DayColumn({ day, isToday, isPast, isFuture, isManager, isEditMod
   return (
     <div className={`relative flex flex-col rounded-xl border overflow-hidden min-w-0 ${isToday ? 'border-blue-300 bg-blue-50' : isPast ? 'border-gray-100' : 'border-gray-200'}`}>
 
-      {/* Faded content wrapper for past days — does NOT include the edit button */}
-      <div className={isPast ? 'opacity-70 pointer-events-none' : ''}>
+      {/* Faded wrapper for past days — opacity only, no pointer-events-none so items stay clickable */}
+      <div className={isPast ? 'opacity-70' : ''}>
         {/* Day header */}
         <div className={`px-3 py-2 text-center font-semibold text-sm ${headerClass}`}>
           <div>{day.label}</div>
@@ -45,7 +45,7 @@ export function DayColumn({ day, isToday, isPast, isFuture, isManager, isEditMod
             <OrderItem
               key={inst.id}
               instance={inst}
-              disabled={isPast || isFuture}
+              disabled={isFuture}
               onToggle={onToggle}
             />
           ))}
