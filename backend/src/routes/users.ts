@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { requireManager } from '../middleware/auth';
-import { getUsers, getAllowedEmails, addAllowedEmail, removeAllowedEmail, assignRole } from '../controllers/users.controller';
+import { getUsers, getAllowedEmails, addAllowedEmail, removeAllowedEmail, assignRole, setAuthRole } from '../controllers/users.controller';
 
 export const router = Router();
 
@@ -8,4 +8,5 @@ router.get('/', requireManager, getUsers);
 router.get('/allowed-emails', requireManager, getAllowedEmails);
 router.post('/allowed-emails', requireManager, addAllowedEmail);
 router.delete('/allowed-emails/:id', requireManager, removeAllowedEmail);
+router.patch('/:id/auth-role', requireManager, setAuthRole);
 router.patch('/:id/role', requireManager, assignRole);

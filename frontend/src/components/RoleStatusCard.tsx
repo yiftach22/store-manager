@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { format } from 'date-fns';
+import { he } from 'date-fns/locale';
 import type { RoleStatus, TaskInstance } from '../types/tasks';
 
 interface Props {
@@ -22,12 +24,24 @@ function ProgressBar({ done, total, color }: { done: number; total: number; colo
   );
 }
 
+function completionLabel(t: TaskInstance): string {
+  if (!t.status || !t.completedAt) return '';
+  const d = new Date(t.completedAt);
+  const time = format(d, 'HH:mm', { locale: he });
+  const who = t.completedByName ?? '';
+  if (t.frequency === 'weekly') {
+    const day = format(d, 'EEEE', { locale: he });
+    return `${day} ${time}${who ? ` — ${who}` : ''}`;
+  }
+  return `${time}${who ? ` — ${who}` : ''}`;
+}
+
 function TaskList({ instances, label }: { instances: TaskInstance[]; label: string }) {
   if (instances.length === 0) return null;
   return (
     <div className="mt-3">
       <p className="text-xs font-semibold text-gray-400 mb-1">{label}</p>
-      <ul className="space-y-1">
+      <ul className="space-y-1.5">
         {instances.map((t) => (
           <li key={t.id} className="flex items-center gap-2">
             <span className={t.status ? 'text-green-500' : 'text-gray-300'}>
@@ -36,6 +50,9 @@ function TaskList({ instances, label }: { instances: TaskInstance[]; label: stri
             <span className={`text-sm ${t.status ? 'text-green-700' : 'text-gray-500'}`}>
               {t.title}
             </span>
+            {t.status && (
+              <span className="text-xs text-gray-400 mr-auto">{completionLabel(t)}</span>
+            )}
           </li>
         ))}
       </ul>
@@ -44,24 +61,15 @@ function TaskList({ instances, label }: { instances: TaskInstance[]; label: stri
 }
 
 export function RoleStatusCard({ roleStatus }: Props) {
-  const [expanded, setExpanded] = useState(false);
   const { role, daily, weekly } = roleStatus;
 
   const dailyDone = daily.filter((t) => t.status).length;
   const weeklyDone = weekly.filter((t) => t.status).length;
 
   return (
-    <div
-      className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 cursor-pointer hover:border-gray-200 transition-colors"
-      onClick={() => setExpanded((v) => !v)}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-gray-800">{role.name}</h3>
-        <span className="text-gray-300 text-sm">{expanded ? '▲' : '▼'}</span>
-      </div>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+      <h3 className="font-semibold text-gray-800 mb-3">{role.name}</h3>
 
-      {/* Progress bars */}
       <div className="space-y-2">
         {daily.length > 0 ? (
           <div>
@@ -82,16 +90,13 @@ export function RoleStatusCard({ roleStatus }: Props) {
         )}
       </div>
 
-      {/* Expanded detail */}
-      {expanded && (
-        <div className="mt-3 pt-3 border-t border-gray-100">
-          {daily.length === 0 && weekly.length === 0 && (
-            <p className="text-xs text-gray-400">אין משימות לתאריך זה</p>
-          )}
-          <TaskList instances={daily} label="משימות יומיות" />
-          <TaskList instances={weekly} label="משימות שבועיות" />
-        </div>
-      )}
+      <div className="mt-3 pt-3 border-t border-gray-100">
+        {daily.length === 0 && weekly.length === 0 && (
+          <p className="text-xs text-gray-400">אין משימות לתאריך זה</p>
+        )}
+        <TaskList instances={daily} label="משימות יומיות" />
+        <TaskList instances={weekly} label="משימות שבועיות" />
+      </div>
     </div>
   );
 }

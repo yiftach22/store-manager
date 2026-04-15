@@ -4,13 +4,11 @@
 - Backend: Node.js + Express + TypeScript
 - Database: PostgreSQL via Prisma ORM
 - Auth: JWT + bcrypt
-- Frontend: React + TypeScript + Vite + Tailwind
-- Mobile: React Native + Expo
+- Frontend: React + TypeScript + Vite + Tailwind (PWA — installable on mobile)
 
 ## Project Structure
 /backend    → Express API
-/frontend   → React dashboard + schedule board
-/mobile     → React Native employee app
+/frontend   → React dashboard + worker PWA (single app, role-based views)
 
 ## Key Rules
 - Always use TypeScript, never plain JS
@@ -141,8 +139,22 @@ Orders screen only — no employees, no tasks in the UI.
   - Expanded: task list with ✓ (green) / ○ (gray) per instance
   - Filters out roles with no instances for the selected date
 
+- Phase 11: User management update (web) ✓
+  - GET /api/users now includes jobRole: { id, name } | null for each user
+  - UsersTab: role dropdown per worker row; calls PATCH /api/users/:id/role on change
+  - Dropdown options: all active job roles + "ללא תפקיד"
+
+- Phase 12: PWA worker view ✓
+  - vite-plugin-pwa added; manifest configured (name "ניסת", RTL, theme color #7c3aed, SVG icon)
+  - index.html: title "ניסת", theme-color, apple-mobile-web-app-* meta tags
+  - GET /api/tasks/my-tasks?date=YYYY-MM-DD — returns { role, daily[], weekly[] } for the authenticated user's job role (all auth roles)
+  - /my-tasks route (WorkerTasksPage) — single-column task checklist, optimistic toggle, socket.io realtime
+  - NavBar: top bar on desktop (md+); bottom tab bar on mobile with icons
+  - Workers land on /my-tasks after login; managers land on /; manager-only routes redirect workers to /my-tasks
+  - login() in AuthContext now returns the user's role so LoginPage can navigate accordingly
+
 ## Current Phase
-Phase 11: User management update (web)
+Phase 12 complete — all planned phases done.
 
 ## Tasks System Design (Phases 8–12)
 
@@ -226,17 +238,16 @@ PATCH  /api/users/:id/role                 — assign role to user { roleId: num
 - Date navigation (previous/next day for daily, previous/next week for weekly)
 - Click role card → detail modal or expanded view: done ✓ and undone ✗ task list
 
-### Phase 11: User management update (web)
+### Phase 11: User management update (web) ✓
 - Add role dropdown to each registered user row in UsersTab
 - Calls PATCH /api/users/:id/role on change
 
-### Phase 12: Mobile app (React Native + Expo)
-- Worker-facing app in /mobile
-- Auth: login screen → JWT stored in AsyncStorage
-- Two tabs: יומי (daily tasks) | שבועי (weekly tasks)
-- Shows tasks for the worker's assigned role
-- Tap to check/uncheck (calls PATCH /api/tasks/instances/:id/toggle)
-- Realtime updates via socket.io-client (same pattern as web)
+### Phase 12: PWA worker view ✓
+- vite-plugin-pwa for installability (manifest + service worker auto-generated)
+- GET /api/tasks/my-tasks?date= — worker-accessible endpoint returning their role's tasks
+- /my-tasks route (WorkerTasksPage) — optimistic toggle, socket realtime
+- NavBar bottom tab bar on mobile; top bar on desktop
+- Role-based login redirect: managers → /, workers → /my-tasks
 
 ## Future Phases
 (none planned)
