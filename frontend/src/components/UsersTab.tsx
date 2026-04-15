@@ -92,7 +92,7 @@ export function UsersTab() {
 
       {/* Allowed emails */}
       <section>
-        <h2 className="text-sm font-semibold text-gray-500 mb-3">אימיילים מאושרים להרשמה</h2>
+        <h2 className="text-base font-semibold text-gray-700 mb-3">אימיילים מאושרים להרשמה</h2>
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
 
           {/* Add form */}
@@ -103,12 +103,12 @@ export function UsersTab() {
               onChange={(e) => setNewEmail(e.target.value)}
               placeholder="הכנס אימייל..."
               required
-              className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
             <select
               value={newJobRoleId}
               onChange={(e) => setNewJobRoleId(e.target.value)}
-              className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="">ללא תפקיד</option>
               {roles.map((r) => (
@@ -118,7 +118,7 @@ export function UsersTab() {
             <button
               type="submit"
               disabled={adding}
-              className="bg-blue-600 text-white rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+              className="bg-indigo-600 text-white rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
             >
               הוסף
             </button>
@@ -158,7 +158,7 @@ export function UsersTab() {
 
       {/* Registered users */}
       <section>
-        <h2 className="text-sm font-semibold text-gray-500 mb-3">משתמשים רשומים</h2>
+        <h2 className="text-base font-semibold text-gray-700 mb-3">משתמשים רשומים</h2>
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           {users.length === 0 ? (
             <p className="text-sm text-gray-400 px-4 py-3">אין משתמשים</p>
@@ -170,13 +170,13 @@ export function UsersTab() {
                     <p className="text-sm font-medium text-gray-800 truncate">{u.name}</p>
                     <p className="text-xs text-gray-400 truncate">{u.email}</p>
                   </div>
-                  <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${u.role === 'MANAGER' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
+                  <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${u.role === 'MANAGER' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600'}`}>
                     {u.role === 'MANAGER' ? 'מנהל' : 'עובד'}
                   </span>
                   <select
                     value={u.jobRole?.id ?? ''}
                     onChange={(e) => handleJobRoleChange(u.id, e.target.value)}
-                    className="border border-gray-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+                    className="border border-gray-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700"
                   >
                     <option value="">ללא תפקיד</option>
                     {roles.map((r) => (
@@ -188,7 +188,7 @@ export function UsersTab() {
                     className={`text-xs px-2 py-1 rounded-lg border shrink-0 transition-colors ${
                       u.role === 'MANAGER'
                         ? 'border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200'
-                        : 'border-blue-200 text-blue-500 hover:bg-blue-50'
+                        : 'border-indigo-200 text-indigo-500 hover:bg-indigo-50'
                     }`}
                   >
                     {u.role === 'MANAGER' ? 'הסר מנהל' : 'הענק מנהל'}

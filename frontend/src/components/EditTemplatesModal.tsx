@@ -166,7 +166,7 @@ export function EditTemplatesModal({ mode, onClose, onChanged, onListDeleted, on
                 type="text"
                 value={listName}
                 onChange={(e) => setListName(e.target.value)}
-                className="flex-1 border border-gray-300 rounded-lg px-2 py-1 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 border border-gray-300 rounded-lg px-2 py-1 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
               <button
                 onClick={handleRename}
@@ -185,7 +185,7 @@ export function EditTemplatesModal({ mode, onClose, onChanged, onListDeleted, on
                 value={listName}
                 onChange={(e) => setListName(e.target.value)}
                 placeholder="שם הרשימה..."
-                className="flex-1 border border-gray-300 rounded-lg px-2 py-1 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 border border-gray-300 rounded-lg px-2 py-1 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 autoFocus
               />
             </>
@@ -244,7 +244,7 @@ export function EditTemplatesModal({ mode, onClose, onChanged, onListDeleted, on
                     <span className="flex-1 text-sm text-gray-400 line-through">{t.title}</span>
                     <button
                       onClick={() => handleToggle(t.id)}
-                      className="text-xs text-blue-400 hover:text-blue-600"
+                      className="text-xs text-indigo-400 hover:text-indigo-600"
                     >
                       הפעל
                     </button>
@@ -272,12 +272,12 @@ export function EditTemplatesModal({ mode, onClose, onChanged, onListDeleted, on
                 }
               }}
               placeholder="הוסף פריט..."
-              className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
             <button
               onClick={mode.type === 'new-list' ? addPendingItem : handleAddToExisting}
               disabled={adding}
-              className="bg-blue-600 text-white rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+              className="bg-indigo-600 text-white rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
             >
               הוסף
             </button>
@@ -294,7 +294,7 @@ export function EditTemplatesModal({ mode, onClose, onChanged, onListDeleted, on
               <button
                 onClick={handleCreateList}
                 disabled={creating || !listName.trim()}
-                className="bg-blue-600 text-white rounded-lg px-4 py-1.5 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                className="bg-indigo-600 text-white rounded-lg px-4 py-1.5 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
               >
                 {creating ? 'יוצר...' : 'צור רשימה'}
               </button>

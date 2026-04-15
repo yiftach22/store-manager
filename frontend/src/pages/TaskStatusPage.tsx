@@ -101,7 +101,7 @@ export function TaskStatusPage() {
             <button
               onClick={handleSync}
               disabled={syncing}
-              className="text-xs text-blue-500 hover:text-blue-700 disabled:opacity-50"
+              className="text-xs text-indigo-500 hover:text-indigo-700 disabled:opacity-50"
             >
               {syncing ? 'מייצר...' : 'צור משימות להיום'}
             </button>
@@ -126,7 +126,7 @@ export function TaskStatusPage() {
             </button>
             <button
               onClick={() => setSelectedDate(new Date())}
-              className="text-xs text-blue-500 hover:text-blue-700 mr-2"
+              className="text-xs text-indigo-500 hover:text-indigo-700 mr-2"
             >
               היום
             </button>

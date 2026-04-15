@@ -45,7 +45,7 @@ export function FloatingList({ list, isManager, isEditMode, isFuture, weekStart,
           <>
             <button
               onClick={() => setShowEditModal(true)}
-              className="text-xs text-blue-500 hover:text-blue-700"
+              className="text-xs text-indigo-500 hover:text-indigo-700"
             >
               ערוך
             </button>
@@ -91,7 +91,7 @@ export function FloatingList({ list, isManager, isEditMode, isFuture, weekStart,
       {isManager && !isEditMode && (
         <button
           onClick={() => setShowModal(true)}
-          className="w-full text-xs text-blue-500 hover:text-blue-700 px-4 py-2 text-right border-t border-gray-100"
+          className="w-full text-xs text-indigo-500 hover:text-indigo-700 px-4 py-2 text-right border-t border-gray-100"
         >
           + הוסף פריט לשבוע זה
         </button>

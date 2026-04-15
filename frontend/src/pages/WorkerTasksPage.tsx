@@ -150,7 +150,7 @@ export function WorkerTasksPage() {
   const tabClass = (tab: Tab) =>
     `flex-1 py-2.5 text-sm font-medium border-b-2 transition-colors ${
       activeTab === tab
-        ? 'border-blue-600 text-blue-600'
+        ? 'border-indigo-600 text-indigo-600'
         : 'border-transparent text-gray-400 hover:text-gray-600'
     }`;
 

@@ -11,9 +11,9 @@ function ProgressBar({ done, total, color }: { done: number; total: number; colo
   const pct = total === 0 ? 0 : Math.round((done / total) * 100);
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 bg-gray-100 rounded-full h-2">
+      <div className="flex-1 bg-gray-100 rounded-full h-3">
         <div
-          className={`${color} rounded-full h-2 transition-all`}
+          className={`${color} rounded-full h-3 transition-all`}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -67,14 +67,14 @@ export function RoleStatusCard({ roleStatus }: Props) {
   const weeklyDone = weekly.filter((t) => t.status).length;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+    <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4">
       <h3 className="font-semibold text-gray-800 mb-3">{role.name}</h3>
 
       <div className="space-y-2">
         {daily.length > 0 ? (
           <div>
             <p className="text-xs text-gray-400 mb-1">יומי</p>
-            <ProgressBar done={dailyDone} total={daily.length} color="bg-blue-500" />
+            <ProgressBar done={dailyDone} total={daily.length} color="bg-indigo-500" />
           </div>
         ) : (
           <p className="text-xs text-gray-300">יומי — אין משימות</p>

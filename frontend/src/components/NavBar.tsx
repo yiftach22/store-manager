@@ -8,23 +8,24 @@ export function NavBar() {
   const topLinkClass = ({ isActive }: { isActive: boolean }) =>
     `px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
       isActive
-        ? 'border-blue-600 text-blue-600'
+        ? 'border-indigo-600 text-indigo-600'
         : 'border-transparent text-gray-500 hover:text-gray-700'
     }`;
 
   const bottomLinkClass = ({ isActive }: { isActive: boolean }) =>
     `flex flex-col items-center gap-0.5 flex-1 py-2 text-xs font-medium transition-colors ${
-      isActive ? 'text-blue-600' : 'text-gray-400'
+      isActive ? 'text-indigo-600' : 'text-gray-400'
     }`;
 
   return (
     <>
       {/* Top bar */}
       <div className="bg-white border-b border-gray-200" dir="rtl">
-        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-12">
+        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-14">
 
           {/* Nav links — desktop only */}
           <div className="hidden md:flex items-center gap-1">
+            <span className="font-bold text-indigo-700 text-base tracking-tight px-2 border-l border-gray-200 ml-1">ניצת</span>
             <NavLink to="/my-tasks" end className={topLinkClass}>
               המשימות שלי
             </NavLink>
@@ -52,14 +53,14 @@ export function NavBar() {
 
           {/* Mobile: app name */}
           <div className="flex md:hidden">
-            <span className="text-sm font-semibold text-gray-700">ניסת</span>
+            <span className="text-sm font-bold text-indigo-700">ניצת</span>
           </div>
 
           {/* User info & logout */}
           <div className="flex items-center gap-3">
             <span className="text-sm text-gray-500">{user?.name}</span>
             {isManager && (
-              <span className="hidden md:inline text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">מנהל</span>
+              <span className="hidden md:inline text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">מנהל</span>
             )}
             <button onClick={logout} className="text-sm text-gray-400 hover:text-gray-600">
               יציאה

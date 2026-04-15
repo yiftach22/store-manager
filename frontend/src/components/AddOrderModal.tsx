@@ -48,7 +48,7 @@ export function AddOrderModal({ date, listId, onAdded, onClose }: Props) {
             placeholder="שם הפריט"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
           {error && <p className="text-red-500 text-xs">{error}</p>}
           <div className="flex gap-2 justify-end">
@@ -58,7 +58,7 @@ export function AddOrderModal({ date, listId, onAdded, onClose }: Props) {
             <button
               type="submit"
               disabled={loading || !title.trim()}
-              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
             >
               הוסף
             </button>

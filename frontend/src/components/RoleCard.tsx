@@ -104,12 +104,12 @@ export function RoleCard({ role, templates, isEditMode, onChanged }: Props) {
               onChange={(e) => setNewTitle((prev) => ({ ...prev, [freq]: e.target.value }))}
               onKeyDown={(e) => { if (e.key === 'Enter') handleAddTemplate(freq); }}
               placeholder="+ משימה חדשה"
-              className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:border-blue-400"
+              className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:border-indigo-400"
             />
             <button
               onClick={() => handleAddTemplate(freq)}
               disabled={!newTitle[freq].trim()}
-              className="text-xs text-blue-500 hover:text-blue-700 disabled:opacity-30 px-2"
+              className="text-xs text-indigo-500 hover:text-indigo-700 disabled:opacity-30 px-2"
             >
               הוסף
             </button>
@@ -120,7 +120,7 @@ export function RoleCard({ role, templates, isEditMode, onChanged }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+    <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4">
       {/* Header */}
       <div className="flex items-center gap-2 min-h-[2rem]">
         {renaming ? (
@@ -130,9 +130,9 @@ export function RoleCard({ role, templates, isEditMode, onChanged }: Props) {
               value={renameValue}
               onChange={(e) => setRenameValue(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleRename(); if (e.key === 'Escape') setRenaming(false); }}
-              className="flex-1 text-base font-semibold border-b border-blue-400 focus:outline-none"
+              className="flex-1 text-base font-semibold border-b border-indigo-400 focus:outline-none"
             />
-            <button onClick={handleRename} className="text-xs text-blue-500 hover:text-blue-700">שמור</button>
+            <button onClick={handleRename} className="text-xs text-indigo-500 hover:text-indigo-700">שמור</button>
             <button onClick={() => setRenaming(false)} className="text-xs text-gray-400 hover:text-gray-600">ביטול</button>
           </>
         ) : confirmDelete ? (

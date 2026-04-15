@@ -101,7 +101,7 @@ export function TasksPage() {
                     <button
                       onClick={handleAddRole}
                       disabled={!newRoleName.trim()}
-                      className="text-sm text-blue-500 hover:text-blue-700 disabled:opacity-30 font-medium"
+                      className="text-sm text-indigo-500 hover:text-indigo-700 disabled:opacity-30 font-medium"
                     >
                       הוסף
                     </button>
@@ -115,7 +115,7 @@ export function TasksPage() {
                 ) : (
                   <button
                     onClick={() => setShowAddRole(true)}
-                    className="text-sm text-blue-500 hover:text-blue-700 font-medium"
+                    className="text-sm text-indigo-500 hover:text-indigo-700 font-medium"
                   >
                     + הוסף תפקיד
                   </button>

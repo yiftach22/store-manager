@@ -175,7 +175,7 @@ export function OrdersPage() {
               <>
                 <section>
                   <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-sm font-semibold text-gray-500">הזמנות יומיות</h2>
+                    <h2 className="text-base font-semibold text-gray-700">הזמנות יומיות</h2>
                     {isManager && (
                       <div className="flex items-center gap-2">
                         {syncMsg && (
@@ -186,7 +186,7 @@ export function OrdersPage() {
                         <button
                           onClick={handleManualSync}
                           disabled={syncing}
-                          className="text-xs px-2.5 py-1 rounded-full border border-gray-300 text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors disabled:opacity-50"
+                          className="text-xs px-2.5 py-1 rounded-full border border-gray-300 text-gray-500 hover:border-indigo-400 hover:text-indigo-600 transition-colors disabled:opacity-50"
                         >
                           {syncing ? 'מפעיל...' : 'הפעל רולאובר'}
                         </button>
@@ -225,11 +225,11 @@ export function OrdersPage() {
                 {(weekData.lists.length > 0 || isManager) && (
                   <section>
                     <div className="flex items-center justify-between mb-3">
-                      <h2 className="text-sm font-semibold text-gray-500">רשימות שבועיות</h2>
+                      <h2 className="text-base font-semibold text-gray-700">רשימות שבועיות</h2>
                       {isManager && isEditMode && (
                         <button
                           onClick={() => setShowNewListModal(true)}
-                          className="text-xs text-blue-500 hover:text-blue-700 font-medium"
+                          className="text-xs text-indigo-500 hover:text-indigo-700 font-medium"
                         >
                           + הוסף רשימה
                         </button>

@@ -23,7 +23,7 @@ export function OrderItem({ instance, disabled = false, onToggle }: Props) {
         checked={isDone}
         onChange={() => onToggle(instance.id)}
         disabled={disabled}
-        className="w-4 h-4 rounded accent-blue-600 cursor-pointer shrink-0"
+        className="w-4 h-4 rounded accent-indigo-600 cursor-pointer shrink-0"
       />
       <span className={`flex-1 ${isDone ? 'line-through text-gray-400' : isOverdue ? 'text-red-700 font-medium' : 'text-gray-800'}`}>
         {instance.title}
