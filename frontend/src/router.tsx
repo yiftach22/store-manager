@@ -6,6 +6,8 @@ import { RegisterPage } from './pages/RegisterPage';
 import { OrdersPage } from './pages/OrdersPage';
 import { TasksPage } from './pages/TasksPage';
 import { TaskStatusPage } from './pages/TaskStatusPage';
+import { WorkerTasksPage } from './pages/WorkerTasksPage';
+import { UsersPage } from './pages/UsersPage';
 
 export function Router() {
   return (
@@ -15,9 +17,17 @@ export function Router() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route
-            path="/"
+            path="/my-tasks"
             element={
               <ProtectedRoute>
+                <WorkerTasksPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute managerOnly>
                 <OrdersPage />
               </ProtectedRoute>
             }
@@ -25,7 +35,7 @@ export function Router() {
           <Route
             path="/tasks"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute managerOnly>
                 <TasksPage />
               </ProtectedRoute>
             }
@@ -33,12 +43,20 @@ export function Router() {
           <Route
             path="/tasks/status"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute managerOnly>
                 <TaskStatusPage />
               </ProtectedRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route
+            path="/users"
+            element={
+              <ProtectedRoute managerOnly>
+                <UsersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/my-tasks" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

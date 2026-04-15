@@ -19,7 +19,6 @@ export function TasksPage() {
   const [templates, setTemplates] = useState<Record<number, TaskTemplate[]>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [isEditMode, setIsEditMode] = useState(false);
   const [showAddRole, setShowAddRole] = useState(false);
   const [newRoleName, setNewRoleName] = useState('');
   const addRoleInputRef = useRef<HTMLInputElement>(null);
@@ -73,18 +72,8 @@ export function TasksPage() {
       <NavBar />
 
       <header className="bg-white border-b border-gray-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 py-4">
           <h1 className="text-lg font-bold text-gray-800">ניהול משימות</h1>
-          <button
-            onClick={() => setIsEditMode((v) => !v)}
-            className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
-              isEditMode
-                ? 'bg-orange-100 border-orange-300 text-orange-700'
-                : 'border-gray-300 text-gray-500 hover:border-gray-400'
-            }`}
-          >
-            {isEditMode ? 'סיום עריכה' : 'עריכת תפקידים'}
-          </button>
         </div>
       </header>
 
@@ -94,9 +83,8 @@ export function TasksPage() {
 
         {!loading && !error && (
           <>
-            {/* Add role button (edit mode only) */}
-            {isEditMode && (
-              <div className="mb-4">
+            {/* Add role button */}
+            <div className="mb-4">
                 {showAddRole ? (
                   <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm max-w-sm">
                     <input
@@ -132,13 +120,10 @@ export function TasksPage() {
                     + הוסף תפקיד
                   </button>
                 )}
-              </div>
-            )}
+            </div>
 
             {roles.length === 0 && (
-              <div className="text-center text-gray-400 py-12">
-                אין תפקידים. {isEditMode ? 'הוסף תפקיד ראשון.' : 'הפעל עריכה כדי להוסיף.'}
-              </div>
+              <div className="text-center text-gray-400 py-12">אין תפקידים. הוסף תפקיד ראשון.</div>
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -147,7 +132,7 @@ export function TasksPage() {
                   key={role.id}
                   role={role}
                   templates={templates[role.id] ?? []}
-                  isEditMode={isEditMode}
+                  isEditMode={true}
                   onChanged={fetchAll}
                 />
               ))}

@@ -40,6 +40,11 @@ export async function register(data: {
     },
   });
 
+  // Auto-assign job role if one was set on the allowed email
+  if (allowed.jobRoleId) {
+    await prisma.userJobRole.create({ data: { userId: user.id, roleId: allowed.jobRoleId } });
+  }
+
   const token = signToken(user);
   return { user, token };
 }

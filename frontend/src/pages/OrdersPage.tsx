@@ -7,7 +7,6 @@ import type { WeekData, OrderInstance } from '../types/orders';
 import { WeekNav } from '../components/WeekNav';
 import { DayColumn } from '../components/DayColumn';
 import { FloatingList } from '../components/FloatingList';
-import { UsersTab } from '../components/UsersTab';
 import { EditTemplatesModal } from '../components/EditTemplatesModal';
 import { NavBar } from '../components/NavBar';
 
@@ -15,12 +14,9 @@ function getSundayOfWeek(d: Date): Date {
   return startOfWeek(d, { weekStartsOn: 0 });
 }
 
-type Tab = 'orders' | 'users';
-
 export function OrdersPage() {
   const { user } = useAuth();
   const isManager = user?.role === 'MANAGER';
-  const [activeTab, setActiveTab] = useState<Tab>('orders');
 
   const [weekStart, setWeekStart] = useState<Date>(() => getSundayOfWeek(new Date()));
   const [weekData, setWeekData] = useState<WeekData | null>(null);
@@ -162,43 +158,16 @@ export function OrdersPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col" dir="rtl">
       <NavBar />
 
-      {/* Tab bar + week nav */}
       <header className="bg-white shadow-sm">
-        {/* Tab bar — manager only */}
-        {isManager && (
-          <div className="flex border-b border-gray-200 px-4">
-            <button
-              onClick={() => setActiveTab('orders')}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'orders' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-            >
-              הזמנות
-            </button>
-            <button
-              onClick={() => setActiveTab('users')}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-            >
-              ניהול עובדים
-            </button>
-          </div>
-        )}
-
-        {activeTab === 'orders' && (
-          <WeekNav
-            weekStart={weekStart}
-            onPrev={() => setWeekStart((w) => subWeeks(w, 1))}
-            onNext={() => setWeekStart((w) => addWeeks(w, 1))}
-          />
-        )}
+        <WeekNav
+          weekStart={weekStart}
+          onPrev={() => setWeekStart((w) => subWeeks(w, 1))}
+          onNext={() => setWeekStart((w) => addWeeks(w, 1))}
+        />
       </header>
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-6 flex flex-col gap-8">
-
-        {/* ── Users management tab ── */}
-        {activeTab === 'users' && <UsersTab />}
-
-        {/* ── Orders tab ── */}
-        {activeTab === 'orders' && (
-          <>
+        <>
             {loading && <div className="text-center text-gray-400 py-12">טוען...</div>}
             {error && <div className="text-center text-red-500 py-12">{error}</div>}
 
@@ -295,7 +264,6 @@ export function OrdersPage() {
               </>
             )}
           </>
-        )}
       </main>
 
       {showNewListModal && (

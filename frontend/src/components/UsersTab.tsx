@@ -8,22 +8,23 @@ interface User {
   email: string;
   role: 'MANAGER' | 'WORKER';
   createdAt: string;
-  jobRoles: { roleId: number; role: { id: number; name: string } }[];
+  jobRole: { id: number; name: string } | null;
 }
 
 interface AllowedEmail {
   id: number;
   email: string;
   role: 'MANAGER' | 'WORKER';
+  jobRole: { id: number; name: string } | null;
   createdAt: string;
 }
 
 export function UsersTab() {
   const [users, setUsers] = useState<User[]>([]);
   const [allowed, setAllowed] = useState<AllowedEmail[]>([]);
-  const [jobRoles, setJobRoles] = useState<JobRole[]>([]);
+  const [roles, setRoles] = useState<JobRole[]>([]);
   const [newEmail, setNewEmail] = useState('');
-  const [newRole, setNewRole] = useState<'WORKER' | 'MANAGER'>('WORKER');
+  const [newJobRoleId, setNewJobRoleId] = useState<string>('');
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState('');
 
@@ -35,7 +36,7 @@ export function UsersTab() {
     ]);
     setUsers(u.data);
     setAllowed(a.data);
-    setJobRoles(r.data);
+    setRoles(r.data.filter((r) => r.isActive));
   }
 
   useEffect(() => { load(); }, []);
@@ -48,10 +49,11 @@ export function UsersTab() {
     try {
       const res = await api.post<AllowedEmail>('/api/users/allowed-emails', {
         email: newEmail.trim(),
-        role: newRole,
+        jobRoleId: newJobRoleId ? parseInt(newJobRoleId, 10) : null,
       });
       setAllowed((prev) => [res.data, ...prev]);
       setNewEmail('');
+      setNewJobRoleId('');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
       setError(msg ?? 'שגיאה בהוספת אימייל');
@@ -65,25 +67,22 @@ export function UsersTab() {
     setAllowed((prev) => prev.filter((a) => a.id !== id));
   }
 
-  async function handleRoleChange(userId: number, roleId: number | null) {
+  async function handleJobRoleChange(userId: number, value: string) {
+    const roleId = value === '' ? null : parseInt(value, 10);
+    await api.patch(`/api/users/${userId}/role`, { roleId });
     setUsers((prev) =>
-      prev.map((u) =>
-        u.id === userId
-          ? {
-              ...u,
-              jobRoles:
-                roleId == null
-                  ? []
-                  : [{ roleId, role: jobRoles.find((r) => r.id === roleId)! }],
-            }
-          : u
-      )
+      prev.map((u) => {
+        if (u.id !== userId) return u;
+        const matched = roles.find((r) => r.id === roleId) ?? null;
+        return { ...u, jobRole: matched ? { id: matched.id, name: matched.name } : null };
+      })
     );
-    try {
-      await api.patch(`/api/users/${userId}/role`, { roleId });
-    } catch {
-      load();
-    }
+  }
+
+  async function handleAuthRoleToggle(userId: number, currentRole: 'MANAGER' | 'WORKER') {
+    const newRole = currentRole === 'MANAGER' ? 'WORKER' : 'MANAGER';
+    await api.patch(`/api/users/${userId}/auth-role`, { role: newRole });
+    setUsers((prev) => prev.map((u) => u.id === userId ? { ...u, role: newRole } : u));
   }
 
   const registeredEmails = new Set(users.map((u) => u.email));
@@ -107,12 +106,14 @@ export function UsersTab() {
               className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <select
-              value={newRole}
-              onChange={(e) => setNewRole(e.target.value as 'WORKER' | 'MANAGER')}
+              value={newJobRoleId}
+              onChange={(e) => setNewJobRoleId(e.target.value)}
               className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="WORKER">עובד</option>
-              <option value="MANAGER">מנהל</option>
+              <option value="">ללא תפקיד</option>
+              {roles.map((r) => (
+                <option key={r.id} value={r.id}>{r.name}</option>
+              ))}
             </select>
             <button
               type="submit"
@@ -133,9 +134,11 @@ export function UsersTab() {
                 return (
                   <li key={a.id} className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-50 last:border-0">
                     <span className="flex-1 text-sm text-gray-800">{a.email}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${a.role === 'MANAGER' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
-                      {a.role === 'MANAGER' ? 'מנהל' : 'עובד'}
-                    </span>
+                    {a.jobRole && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                        {a.jobRole.name}
+                      </span>
+                    )}
                     {isUsed && (
                       <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">רשום</span>
                     )}
@@ -167,23 +170,30 @@ export function UsersTab() {
                     <p className="text-sm font-medium text-gray-800 truncate">{u.name}</p>
                     <p className="text-xs text-gray-400 truncate">{u.email}</p>
                   </div>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${u.role === 'MANAGER' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
+                  <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${u.role === 'MANAGER' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
                     {u.role === 'MANAGER' ? 'מנהל' : 'עובד'}
                   </span>
                   <select
-                    value={u.jobRoles[0]?.role?.id ?? ''}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      handleRoleChange(u.id, val === '' ? null : parseInt(val, 10));
-                    }}
-                    className="border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+                    value={u.jobRole?.id ?? ''}
+                    onChange={(e) => handleJobRoleChange(u.id, e.target.value)}
+                    className="border border-gray-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
                   >
                     <option value="">ללא תפקיד</option>
-                    {jobRoles.map((r) => (
+                    {roles.map((r) => (
                       <option key={r.id} value={r.id}>{r.name}</option>
                     ))}
                   </select>
-                  <span className="text-xs text-gray-400">
+                  <button
+                    onClick={() => handleAuthRoleToggle(u.id, u.role)}
+                    className={`text-xs px-2 py-1 rounded-lg border shrink-0 transition-colors ${
+                      u.role === 'MANAGER'
+                        ? 'border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200'
+                        : 'border-blue-200 text-blue-500 hover:bg-blue-50'
+                    }`}
+                  >
+                    {u.role === 'MANAGER' ? 'הסר מנהל' : 'הענק מנהל'}
+                  </button>
+                  <span className="text-xs text-gray-400 shrink-0">
                     {new Date(u.createdAt).toLocaleDateString('he-IL')}
                   </span>
                 </li>

@@ -6,6 +6,8 @@ export interface TaskInstance {
   date: string;
   roleId: number;
   templateId: number | null;
+  completedAt: string | null;
+  completedByName: string | null;
 }
 
 export interface RoleStatus {

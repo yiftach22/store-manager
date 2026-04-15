@@ -13,7 +13,7 @@ interface AuthContextValue {
   user: User | null;
   token: string | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<'MANAGER' | 'WORKER'>;
   logout: () => void;
 }
 
@@ -33,11 +33,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setIsLoading(false));
   }, []);
 
-  async function login(email: string, password: string) {
+  async function login(email: string, password: string): Promise<'MANAGER' | 'WORKER'> {
     const res = await api.post<{ token: string; user: User }>('/auth/login', { email, password });
     localStorage.setItem('token', res.data.token);
     setToken(res.data.token);
     setUser(res.data.user);
+    return res.data.user.role;
   }
 
   function logout() {

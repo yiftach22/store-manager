@@ -16,8 +16,8 @@ export function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
-      navigate('/');
+      const role = await login(email, password);
+      navigate(role === 'MANAGER' ? '/' : '/my-tasks');
     } catch {
       setError('אימייל או סיסמה שגויים');
     } finally {
