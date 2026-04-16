@@ -450,7 +450,10 @@ export async function toggleInstance(req: Request, res: Response, next: NextFunc
 // POST /api/orders/sync  (Manager only)
 export async function syncOrders(req: Request, res: Response, next: NextFunction) {
   try {
-    const result = await processDailyRollover(new Date());
+    const { date } = req.query as { date?: string };
+    const target = date ? parseISO(date) : new Date();
+    if (!isValid(target)) return next(new AppError('Invalid date', 400, ErrorCode.VALIDATION_ERROR));
+    const result = await processDailyRollover(target);
     res.json(result);
   } catch (err) {
     next(err);

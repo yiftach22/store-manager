@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { Server } from 'socket.io';
-import { parseISO, startOfDay, startOfWeek } from 'date-fns';
+import { parseISO, isValid, startOfDay, startOfWeek } from 'date-fns';
 import { prisma } from '../prisma/client';
 import { AppError, ErrorCode } from '../types/errors';
 import { generateTaskInstances } from '../services/task.service';
@@ -74,7 +74,10 @@ export async function getTaskStatus(req: Request, res: Response, next: NextFunct
 // POST /api/tasks/sync — manually generate today's daily + this week's weekly instances
 export async function syncTasks(req: Request, res: Response, next: NextFunction) {
   try {
-    const result = await generateTaskInstances(new Date(), true);
+    const { date } = req.query as { date?: string };
+    const target = date ? parseISO(date) : new Date();
+    if (!isValid(target)) return next(new AppError('Invalid date', 400, ErrorCode.VALIDATION_ERROR));
+    const result = await generateTaskInstances(target, true);
     res.json(result);
   } catch (err) {
     next(err);
