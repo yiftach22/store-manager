@@ -5,7 +5,7 @@ export function UsersPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col" dir="rtl">
       <NavBar />
-      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8 pb-24 md:pb-8">
         <h1 className="text-xl font-bold text-gray-800 mb-6">ניהול עובדים</h1>
         <UsersTab />
       </main>

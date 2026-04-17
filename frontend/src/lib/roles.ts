@@ -14,6 +14,7 @@ export const ROLE_LABELS: Record<Role, string> = {
 export function homePathFor(role: Role): string {
   switch (role) {
     case 'MANAGER':
+      return '/tasks/status';
     case 'ORDERS':
       return '/';
     case 'WORKER':

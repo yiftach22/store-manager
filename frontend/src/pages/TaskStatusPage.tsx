@@ -195,14 +195,15 @@ export function TaskStatusPage() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 pb-24 md:pb-8">
         {loading && <div className="text-center text-gray-400 py-12">טוען...</div>}
         {error && <div className="text-center text-red-500 py-12">{error}</div>}
 
         {(!loading || statusData.length > 0) && !error && (
-          <div className="flex gap-0">
-            {/* Order summary cards — right side in RTL */}
-            <div className="w-64 shrink-0 flex flex-col gap-4">
+          <div className="flex flex-col gap-6 md:flex-row md:gap-0">
+            {/* Order summary cards */}
+            <div className="md:w-64 md:shrink-0 flex flex-col gap-4">
+              <h2 className="text-base font-semibold text-gray-700 md:hidden">הזמנות</h2>
               <OrderSummaryCard
                 title="הזמנות יומיות"
                 done={dailyDone}
@@ -217,11 +218,13 @@ export function TaskStatusPage() {
               />
             </div>
 
-            {/* Vertical separator */}
-            <div className="w-px bg-gray-200 mx-6 shrink-0" />
+            {/* Separator — horizontal on mobile, vertical on desktop */}
+            <hr className="border-gray-200 md:hidden" />
+            <div className="hidden md:block w-px bg-gray-200 mx-6 shrink-0" />
 
-            {/* Role status cards — left side in RTL */}
+            {/* Role status cards */}
             <div className="flex-1 min-w-0">
+              <h2 className="text-base font-semibold text-gray-700 mb-3">משימות</h2>
               {(statusData.length === 0 || isEmpty) && (
                 <div className="text-center text-gray-400 py-12">אין נתונים לתאריך זה</div>
               )}

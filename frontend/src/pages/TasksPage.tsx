@@ -71,7 +71,7 @@ export function TasksPage() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-8">
+      <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-8 pb-24 md:pb-8">
         {loading && <div className="text-center text-gray-400 py-12">טוען...</div>}
         {error && <div className="text-center text-red-500 py-12">{error}</div>}
 

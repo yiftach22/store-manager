@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { startOfWeek, addWeeks, subWeeks, format, isSameDay, isBefore, isAfter, startOfDay } from 'date-fns';
 import { io } from 'socket.io-client';
 import { api } from '../lib/api';
@@ -88,6 +88,12 @@ export function OrdersPage() {
 
   useEffect(() => { fetchWeek(weekStart); }, [weekStart, fetchWeek]);
 
+  // Scroll today's column into center after data loads
+  useEffect(() => {
+    if (!weekData || !todayColRef.current) return;
+    todayColRef.current.scrollIntoView({ behavior: 'instant' as ScrollBehavior, block: 'nearest', inline: 'center' });
+  }, [weekData]);
+
   const currentWeekSunday = getSundayOfWeek(new Date());
   const isFutureWeek = isAfter(weekStart, currentWeekSunday);
 
@@ -155,6 +161,7 @@ export function OrdersPage() {
   }
 
   const today = startOfDay(new Date());
+  const todayColRef = useRef<HTMLDivElement>(null);
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState('');
 
@@ -185,7 +192,7 @@ export function OrdersPage() {
         />
       </header>
 
-      <main className="flex-1 w-full px-8 py-8 flex flex-col gap-10">
+      <main className="flex-1 w-full px-3 md:px-8 py-4 md:py-8 pb-24 md:pb-8 flex flex-col gap-8 md:gap-10">
         <>
             {loading && <div className="text-center text-gray-400 py-12">טוען...</div>}
             {error && <div className="text-center text-red-500 py-12">{error}</div>}
@@ -218,25 +225,31 @@ export function OrdersPage() {
                       </div>
                     )}
                   </div>
-                  <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
+                  {/* Scrollable on mobile, full-width grid on desktop */}
+                  <div className="flex overflow-x-auto gap-3 md:gap-4 pb-2 snap-x snap-mandatory -mx-3 px-3 md:mx-0 md:px-0 md:overflow-x-visible">
                     {weekData.days.map((day) => {
                       const dayDate = startOfDay(new Date(day.date + 'T00:00:00'));
                       const isToday = isSameDay(dayDate, today);
                       const isPast = isBefore(dayDate, today) && !isToday;
                       return (
-                        <DayColumn
+                        <div
                           key={day.date}
-                          day={day}
-                          isToday={isToday}
-                          isPast={isPast}
-                          isFuture={isFutureWeek}
-                          isManager={isManager}
-                          canAddOneOff={canAddOneOff}
-                          isEditMode={isEditMode}
-                          onToggle={handleToggle}
-                          onAdded={handleDayAdded}
-                          onTemplatesChanged={() => fetchWeek(weekStart)}
-                        />
+                          ref={isToday ? todayColRef : undefined}
+                          className="w-40 shrink-0 snap-center md:w-auto md:flex-1 flex flex-col"
+                        >
+                          <DayColumn
+                            day={day}
+                            isToday={isToday}
+                            isPast={isPast}
+                            isFuture={isFutureWeek}
+                            isManager={isManager}
+                            canAddOneOff={canAddOneOff}
+                            isEditMode={isEditMode}
+                            onToggle={handleToggle}
+                            onAdded={handleDayAdded}
+                            onTemplatesChanged={() => fetchWeek(weekStart)}
+                          />
+                        </div>
                       );
                     })}
                   </div>
@@ -247,7 +260,7 @@ export function OrdersPage() {
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="text-lg font-semibold text-gray-700">הזמנות שבועיות</h2>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                       {weekData.lists.map((list) => (
                         <FloatingList
                           key={list.id}

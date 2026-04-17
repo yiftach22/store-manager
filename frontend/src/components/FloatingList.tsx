@@ -37,7 +37,7 @@ export function FloatingList({ list, isManager, canAddOneOff, isEditMode, isFutu
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden h-full flex flex-col">
       {/* List header */}
       <div className="px-5 py-3 bg-gray-50 border-b border-gray-200 flex items-center gap-3">
         <span className="flex-1 font-semibold text-gray-800 text-base">{displayName}</span>
@@ -79,7 +79,7 @@ export function FloatingList({ list, isManager, canAddOneOff, isEditMode, isFutu
       </div>
 
       {/* Orders */}
-      <ul className="p-3 flex flex-col gap-1 min-h-10">
+      <ul className="flex-1 p-3 flex flex-col gap-1 min-h-10">
         {list.instances.length === 0 && (
           <li className="text-sm text-gray-400 px-2 py-2">אין פריטים</li>
         )}

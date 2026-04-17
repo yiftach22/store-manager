@@ -28,10 +28,10 @@ export function DayColumn({ day, isToday, isPast, isFuture, isManager, canAddOne
     : 'bg-gray-50 text-gray-700';
 
   return (
-    <div className={`relative flex flex-col rounded-xl border shadow-sm overflow-hidden min-w-0 ${isToday ? 'border-indigo-300 bg-indigo-50' : isPast ? 'border-gray-100' : 'border-gray-200'}`}>
+    <div className={`relative flex flex-col h-full rounded-xl border shadow-sm overflow-hidden min-w-0 ${isToday ? 'border-indigo-300 bg-indigo-50' : isPast ? 'border-gray-100' : 'border-gray-200'}`}>
 
       {/* Faded wrapper for past days — opacity only, no pointer-events-none so items stay clickable */}
-      <div className={isPast ? 'opacity-70' : ''}>
+      <div className={`flex flex-col flex-1${isPast ? ' opacity-70' : ''}`}>
         {/* Day header */}
         <div className={`px-4 py-3 text-center font-semibold text-base ${headerClass}`}>
           <div>{day.label}</div>

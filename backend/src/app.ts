@@ -31,6 +31,8 @@ export function createApp() {
       const allowed = [
         config.frontendUrl,
         /\.vercel\.app$/,
+        /^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/,
+        /^http:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/,
       ];
       const ok = allowed.some(p => typeof p === 'string' ? p === origin : p.test(origin));
       callback(ok ? null : new Error('CORS'), ok);

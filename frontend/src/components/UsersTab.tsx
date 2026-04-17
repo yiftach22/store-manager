@@ -21,13 +21,6 @@ interface AllowedEmail {
   createdAt: string;
 }
 
-// Tailwind class lookup for auth-role pills. Amber for ORDERS keeps it visually
-// distinct from MANAGER (indigo) and the neutral WORKER pill.
-const ROLE_PILL_CLASS: Record<Role, string> = {
-  MANAGER: 'bg-indigo-100 text-indigo-700',
-  ORDERS: 'bg-amber-100 text-amber-700',
-  WORKER: 'bg-gray-100 text-gray-600',
-};
 
 let _usersCache: User[] | null = null;
 let _allowedCache: AllowedEmail[] | null = null;
@@ -164,16 +157,17 @@ export function UsersTab() {
       <section>
         <h2 className="text-lg font-semibold text-gray-700 mb-4">אימיילים מאושרים להרשמה</h2>
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
 
           {/* Add form */}
-          <form onSubmit={handleAdd} className="flex items-center gap-2 p-4 border-b border-gray-100">
+          <form onSubmit={handleAdd} className="flex items-center gap-2 p-4 border-b border-gray-100 min-w-max">
             <input
               type="email"
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
               placeholder="הכנס אימייל..."
               required
-              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="min-w-48 border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
             <select
               value={newAuthRole}
@@ -212,34 +206,40 @@ export function UsersTab() {
           ) : allowed.length === 0 ? (
             <p className="text-base text-gray-400 px-4 py-3">אין אימיילים מאושרים</p>
           ) : (
-            <ul>
-              {allowed.map((a) => {
-                const isUsed = registeredEmails.has(a.email);
-                return (
-                  <li key={a.id} className="flex items-center gap-3 px-5 py-3 border-b border-gray-50 last:border-0">
-                    <span className="flex-1 text-base text-gray-800">{a.email}</span>
-                    <span className={`text-sm px-2.5 py-0.5 rounded-full ${ROLE_PILL_CLASS[a.role]}`}>
-                      {ROLE_LABELS[a.role]}
-                    </span>
-                    {a.jobRole && (
-                      <span className="text-sm px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700">
-                        {a.jobRole.name}
-                      </span>
-                    )}
-                    {isUsed && (
-                      <span className="text-sm bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full">רשום</span>
-                    )}
-                    <button
-                      onClick={() => handleRemove(a.id)}
-                      className="text-sm text-red-400 hover:text-red-600"
-                    >
-                      הסר
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+            <table className="w-full">
+              <tbody>
+                {allowed.map((a) => {
+                  const isUsed = registeredEmails.has(a.email);
+                  return (
+                    <tr key={a.id} className="border-t border-gray-50">
+                      <td className="px-5 py-3 text-base text-gray-800 whitespace-nowrap">{a.email}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {a.jobRole && (
+                          <span className="text-sm px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                            {a.jobRole.name}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {isUsed && (
+                          <span className="text-sm bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full">רשום</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-3 whitespace-nowrap">
+                        <button
+                          onClick={() => handleRemove(a.id)}
+                          className="text-sm text-red-400 hover:text-red-600"
+                        >
+                          הסר
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           )}
+          </div>
         </div>
       </section>
 
@@ -315,58 +315,63 @@ export function UsersTab() {
           ) : users.length === 0 ? (
             <p className="text-base text-gray-400 px-4 py-3">אין משתמשים</p>
           ) : (
-            <ul>
-              {users.map((u) => {
-                const isSelf = currentUser?.id === u.id;
-                return (
-                <li key={u.id} className="flex items-center gap-3 px-5 py-3 border-b border-gray-50 last:border-0">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-base font-medium text-gray-800 truncate">{u.name}</p>
-                    <p className="text-sm text-gray-400 truncate">{u.email}</p>
-                  </div>
-                  <span className={`text-sm px-2.5 py-0.5 rounded-full shrink-0 ${ROLE_PILL_CLASS[u.role]}`}>
-                    {ROLE_LABELS[u.role]}
-                  </span>
-                  {/* Job role is only meaningful for WORKERs — hide the picker
-                      for MANAGER / ORDERS to avoid confusing "no effect" UI. */}
-                  {u.role === 'WORKER' && (
-                    <select
-                      value={u.jobRole?.id ?? ''}
-                      onChange={(e) => handleJobRoleChange(u.id, e.target.value)}
-                      className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700"
-                    >
-                      <option value="">ללא תפקיד</option>
-                      {roles.map((r) => (
-                        <option key={r.id} value={r.id}>{r.name}</option>
-                      ))}
-                    </select>
-                  )}
-                  {/* Auth-role picker — disabled for the logged-in manager so they
-                      can't demote themselves. Backend also rejects self-changes. */}
-                  <select
-                    value={u.role}
-                    onChange={(e) => handleAuthRoleChange(u.id, e.target.value as Role)}
-                    disabled={isSelf}
-                    title={isSelf ? 'לא ניתן לשנות את התפקיד של עצמך' : undefined}
-                    className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-                  >
-                    <option value="WORKER">{ROLE_LABELS.WORKER}</option>
-                    <option value="ORDERS">{ROLE_LABELS.ORDERS}</option>
-                    <option value="MANAGER">{ROLE_LABELS.MANAGER}</option>
-                  </select>
-                  <button
-                    onClick={() => openResetModal(u)}
-                    className="text-sm px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:border-amber-300 hover:text-amber-600 shrink-0 transition-colors"
-                  >
-                    איפוס סיסמה
-                  </button>
-                  <span className="text-sm text-gray-400 shrink-0">
-                    {new Date(u.createdAt).toLocaleDateString('he-IL')}
-                  </span>
-                </li>
-                );
-              })}
-            </ul>
+            <div className="overflow-x-auto">
+            <table className="w-full">
+              <tbody>
+                {users.map((u) => {
+                  const isSelf = currentUser?.id === u.id;
+                  return (
+                  <tr key={u.id} className="border-t border-gray-50">
+                    <td className="px-5 py-3">
+                      <p className="text-base font-medium text-gray-800 whitespace-nowrap">{u.name}</p>
+                      <p className="text-sm text-gray-400 whitespace-nowrap">{u.email}</p>
+                    </td>
+                    {/* Job role — only shown for WORKERs; cell kept for column alignment */}
+                    <td className="px-4 py-3">
+                      {u.role === 'WORKER' && (
+                        <select
+                          value={u.jobRole?.id ?? ''}
+                          onChange={(e) => handleJobRoleChange(u.id, e.target.value)}
+                          className="w-36 border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700"
+                        >
+                          <option value="">ללא תפקיד</option>
+                          {roles.map((r) => (
+                            <option key={r.id} value={r.id}>{r.name}</option>
+                          ))}
+                        </select>
+                      )}
+                    </td>
+                    {/* Auth-role picker — disabled for self */}
+                    <td className="px-4 py-3">
+                      <select
+                        value={u.role}
+                        onChange={(e) => handleAuthRoleChange(u.id, e.target.value as Role)}
+                        disabled={isSelf}
+                        title={isSelf ? 'לא ניתן לשנות את התפקיד של עצמך' : undefined}
+                        className="w-36 border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <option value="WORKER">{ROLE_LABELS.WORKER}</option>
+                        <option value="ORDERS">{ROLE_LABELS.ORDERS}</option>
+                        <option value="MANAGER">{ROLE_LABELS.MANAGER}</option>
+                      </select>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <button
+                        onClick={() => openResetModal(u)}
+                        className="text-sm px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:border-amber-300 hover:text-amber-600 transition-colors"
+                      >
+                        איפוס סיסמה
+                      </button>
+                    </td>
+                    <td className="px-5 py-3 text-sm text-gray-400 whitespace-nowrap">
+                      {new Date(u.createdAt).toLocaleDateString('he-IL')}
+                    </td>
+                  </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            </div>
           )}
         </div>
       </section>
