@@ -75,7 +75,7 @@ export function TasksPage() {
         {loading && <div className="text-center text-gray-400 py-12">טוען...</div>}
         {error && <div className="text-center text-red-500 py-12">{error}</div>}
 
-        {!loading && !error && (
+        {(!loading || roles.length > 0) && !error && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {roles.map((role) => (

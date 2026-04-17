@@ -199,7 +199,7 @@ export function TaskStatusPage() {
         {loading && <div className="text-center text-gray-400 py-12">טוען...</div>}
         {error && <div className="text-center text-red-500 py-12">{error}</div>}
 
-        {!loading && !error && (
+        {(!loading || statusData.length > 0) && !error && (
           <div className="flex gap-0">
             {/* Order summary cards — right side in RTL */}
             <div className="w-64 shrink-0 flex flex-col gap-4">

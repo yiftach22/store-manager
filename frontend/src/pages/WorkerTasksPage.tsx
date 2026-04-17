@@ -191,7 +191,7 @@ export function WorkerTasksPage() {
           </div>
         )}
 
-        {!isSaturday && !loading && !error && data && (
+        {!isSaturday && (!loading || data != null) && !error && data && (
           <>
             {data.role === null ? (
               <div className="text-center py-16">
