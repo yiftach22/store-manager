@@ -19,7 +19,15 @@ async function main() {
   const server = http.createServer(app);
 
   const io = new Server(server, {
-    cors: { origin: config.frontendUrl, credentials: true },
+    cors: {
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        const allowed = [config.frontendUrl, /\.vercel\.app$/];
+        const ok = allowed.some(p => typeof p === 'string' ? p === origin : p.test(origin));
+        callback(ok ? null : new Error('CORS'), ok);
+      },
+      credentials: true,
+    },
   });
 
   io.use((socket, next) => {
