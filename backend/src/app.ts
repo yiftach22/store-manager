@@ -24,7 +24,18 @@ export function createApp() {
 
   app.use(helmet());
   app.use(express.json());
-  app.use(cors({ origin: config.frontendUrl }));
+  app.use(cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true); // allow non-browser requests
+      const allowed = [
+        config.frontendUrl,
+        /\.vercel\.app$/,
+      ];
+      const ok = allowed.some(p => typeof p === 'string' ? p === origin : p.test(origin));
+      callback(ok ? null : new Error('CORS'), ok);
+    },
+    credentials: true,
+  }));
 
   // Public routes — no auth required. Rate-limited to blunt brute-force.
   app.use('/auth', authLimiter, authRouter);
