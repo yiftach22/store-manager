@@ -8,6 +8,8 @@ export interface OrderInstance {
   isOverdue: boolean;
   templateId: number | null;
   listId: number | null;
+  completedAt?: string | null;
+  completedByName?: string | null;
   virtual?: boolean;  // true = derived from template, no DB instance yet
 }
 

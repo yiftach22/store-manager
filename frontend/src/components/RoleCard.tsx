@@ -61,16 +61,16 @@ export function RoleCard({ role, templates, isEditMode, onChanged }: Props) {
   function renderSection(label: string, freq: Section, all: TaskTemplate[], active: TaskTemplate[]) {
     const list = isEditMode ? all : active;
     return (
-      <div className="mt-3">
-        <p className="text-xs font-semibold text-gray-400 mb-1">{label}</p>
+      <div className="mt-4">
+        <p className="text-sm font-semibold text-gray-400 mb-1.5">{label}</p>
         {list.length === 0 && !isEditMode && (
-          <p className="text-xs text-gray-300 italic">אין משימות</p>
+          <p className="text-sm text-gray-300 italic">אין משימות</p>
         )}
-        <ul className="space-y-1">
+        <ul className="space-y-1.5">
           {list.map((t) => (
             <li key={t.id} className="flex items-center gap-2 group">
               <span
-                className={`flex-1 text-sm ${
+                className={`flex-1 text-base ${
                   t.isActive ? 'text-gray-700' : 'line-through text-gray-400'
                 }`}
               >
@@ -81,14 +81,14 @@ export function RoleCard({ role, templates, isEditMode, onChanged }: Props) {
                   <button
                     onClick={() => handleToggleTemplate(t)}
                     title={t.isActive ? 'השבת' : 'הפעל'}
-                    className="text-xs text-gray-400 hover:text-gray-600 px-1"
+                    className="text-sm text-gray-400 hover:text-gray-600 px-1"
                   >
                     {t.isActive ? '✓' : '✗'}
                   </button>
                   <button
                     onClick={() => handleDeleteTemplate(t)}
                     title="מחק"
-                    className="text-xs text-red-300 hover:text-red-500 px-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="text-sm text-red-300 hover:text-red-500 px-1 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     ✕
                   </button>
@@ -98,18 +98,18 @@ export function RoleCard({ role, templates, isEditMode, onChanged }: Props) {
           ))}
         </ul>
         {isEditMode && (
-          <div className="flex gap-1 mt-2">
+          <div className="flex gap-1.5 mt-2.5">
             <input
               value={newTitle[freq]}
               onChange={(e) => setNewTitle((prev) => ({ ...prev, [freq]: e.target.value }))}
               onKeyDown={(e) => { if (e.key === 'Enter') handleAddTemplate(freq); }}
               placeholder="+ משימה חדשה"
-              className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:border-indigo-400"
+              className="flex-1 text-sm border border-gray-200 rounded px-3 py-1.5 focus:outline-none focus:border-indigo-400"
             />
             <button
               onClick={() => handleAddTemplate(freq)}
               disabled={!newTitle[freq].trim()}
-              className="text-xs text-indigo-500 hover:text-indigo-700 disabled:opacity-30 px-2"
+              className="text-sm text-indigo-500 hover:text-indigo-700 disabled:opacity-30 px-2"
             >
               הוסף
             </button>
@@ -120,7 +120,7 @@ export function RoleCard({ role, templates, isEditMode, onChanged }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4">
+    <div className="bg-white rounded-xl shadow-md border border-gray-200 p-5">
       {/* Header */}
       <div className="flex items-center gap-2 min-h-[2rem]">
         {renaming ? (
@@ -130,20 +130,20 @@ export function RoleCard({ role, templates, isEditMode, onChanged }: Props) {
               value={renameValue}
               onChange={(e) => setRenameValue(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleRename(); if (e.key === 'Escape') setRenaming(false); }}
-              className="flex-1 text-base font-semibold border-b border-indigo-400 focus:outline-none"
+              className="flex-1 text-lg font-semibold border-b border-indigo-400 focus:outline-none"
             />
-            <button onClick={handleRename} className="text-xs text-indigo-500 hover:text-indigo-700">שמור</button>
-            <button onClick={() => setRenaming(false)} className="text-xs text-gray-400 hover:text-gray-600">ביטול</button>
+            <button onClick={handleRename} className="text-sm text-indigo-500 hover:text-indigo-700">שמור</button>
+            <button onClick={() => setRenaming(false)} className="text-sm text-gray-400 hover:text-gray-600">ביטול</button>
           </>
         ) : confirmDelete ? (
           <>
-            <span className="flex-1 text-sm text-red-500">למחוק את "{role.name}"?</span>
-            <button onClick={handleDelete} className="text-xs text-red-500 hover:text-red-700 font-medium">כן</button>
-            <button onClick={() => setConfirmDelete(false)} className="text-xs text-gray-400 hover:text-gray-600">ביטול</button>
+            <span className="flex-1 text-base text-red-500">למחוק את "{role.name}"?</span>
+            <button onClick={handleDelete} className="text-sm text-red-500 hover:text-red-700 font-medium">כן</button>
+            <button onClick={() => setConfirmDelete(false)} className="text-sm text-gray-400 hover:text-gray-600">ביטול</button>
           </>
         ) : (
           <>
-            <h3 className="flex-1 text-base font-semibold text-gray-800">{role.name}</h3>
+            <h3 className="flex-1 text-lg font-semibold text-gray-800">{role.name}</h3>
             {isEditMode && (
               <>
                 <button

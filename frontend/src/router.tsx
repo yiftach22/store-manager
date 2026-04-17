@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { homePathFor } from './lib/roles';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { OrdersPage } from './pages/OrdersPage';
@@ -8,6 +9,15 @@ import { TasksPage } from './pages/TasksPage';
 import { TaskStatusPage } from './pages/TaskStatusPage';
 import { WorkerTasksPage } from './pages/WorkerTasksPage';
 import { UsersPage } from './pages/UsersPage';
+
+// Sends the user to their role-specific home. Used for the catch-all * route so
+// deep-links / bad URLs bounce to the right place instead of always landing on /my-tasks.
+function HomeRedirect() {
+  const { user, token, isLoading } = useAuth();
+  if (isLoading) return null;
+  if (!token || !user) return <Navigate to="/login" replace />;
+  return <Navigate to={homePathFor(user.role)} replace />;
+}
 
 export function Router() {
   return (
@@ -19,7 +29,7 @@ export function Router() {
           <Route
             path="/my-tasks"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allow={['WORKER']}>
                 <WorkerTasksPage />
               </ProtectedRoute>
             }
@@ -27,7 +37,7 @@ export function Router() {
           <Route
             path="/"
             element={
-              <ProtectedRoute managerOnly>
+              <ProtectedRoute allow={['MANAGER', 'ORDERS']}>
                 <OrdersPage />
               </ProtectedRoute>
             }
@@ -35,7 +45,7 @@ export function Router() {
           <Route
             path="/tasks"
             element={
-              <ProtectedRoute managerOnly>
+              <ProtectedRoute allow={['MANAGER']}>
                 <TasksPage />
               </ProtectedRoute>
             }
@@ -43,7 +53,7 @@ export function Router() {
           <Route
             path="/tasks/status"
             element={
-              <ProtectedRoute managerOnly>
+              <ProtectedRoute allow={['MANAGER']}>
                 <TaskStatusPage />
               </ProtectedRoute>
             }
@@ -51,12 +61,12 @@ export function Router() {
           <Route
             path="/users"
             element={
-              <ProtectedRoute managerOnly>
+              <ProtectedRoute allow={['MANAGER']}>
                 <UsersPage />
               </ProtectedRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/my-tasks" replace />} />
+          <Route path="*" element={<HomeRedirect />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

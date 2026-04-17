@@ -72,61 +72,18 @@ export function TasksPage() {
       <NavBar />
 
       <header className="bg-white border-b border-gray-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <h1 className="text-lg font-bold text-gray-800">ניהול משימות</h1>
+        <div className="max-w-6xl mx-auto px-6 py-5">
+          <h1 className="text-xl font-bold text-gray-800">ניהול משימות</h1>
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-6">
+      <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-8">
         {loading && <div className="text-center text-gray-400 py-12">טוען...</div>}
         {error && <div className="text-center text-red-500 py-12">{error}</div>}
 
         {!loading && !error && (
           <>
-            {/* Add role button */}
-            <div className="mb-4">
-                {showAddRole ? (
-                  <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm max-w-sm">
-                    <input
-                      ref={addRoleInputRef}
-                      value={newRoleName}
-                      onChange={(e) => setNewRoleName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleAddRole();
-                        if (e.key === 'Escape') setShowAddRole(false);
-                      }}
-                      placeholder="שם התפקיד"
-                      className="flex-1 text-sm focus:outline-none"
-                    />
-                    <button
-                      onClick={handleAddRole}
-                      disabled={!newRoleName.trim()}
-                      className="text-sm text-indigo-500 hover:text-indigo-700 disabled:opacity-30 font-medium"
-                    >
-                      הוסף
-                    </button>
-                    <button
-                      onClick={() => setShowAddRole(false)}
-                      className="text-sm text-gray-400 hover:text-gray-600"
-                    >
-                      ביטול
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setShowAddRole(true)}
-                    className="text-sm text-indigo-500 hover:text-indigo-700 font-medium"
-                  >
-                    + הוסף תפקיד
-                  </button>
-                )}
-            </div>
-
-            {roles.length === 0 && (
-              <div className="text-center text-gray-400 py-12">אין תפקידים. הוסף תפקיד ראשון.</div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {roles.map((role) => (
                 <RoleCard
                   key={role.id}
@@ -136,6 +93,48 @@ export function TasksPage() {
                   onChanged={fetchAll}
                 />
               ))}
+
+              {/* Add role card */}
+              <div className="bg-white rounded-xl shadow-md border-2 border-dashed border-gray-200 p-5 min-h-[8rem] flex flex-col items-center justify-center">
+                {showAddRole ? (
+                  <div className="w-full flex flex-col gap-3">
+                    <input
+                      ref={addRoleInputRef}
+                      value={newRoleName}
+                      onChange={(e) => setNewRoleName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleAddRole();
+                        if (e.key === 'Escape') { setShowAddRole(false); setNewRoleName(''); }
+                      }}
+                      placeholder="שם התפקיד"
+                      className="w-full text-base border-b border-indigo-400 focus:outline-none pb-1"
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <button
+                        onClick={handleAddRole}
+                        disabled={!newRoleName.trim()}
+                        className="text-sm text-indigo-500 hover:text-indigo-700 disabled:opacity-30 font-medium"
+                      >
+                        הוסף
+                      </button>
+                      <button
+                        onClick={() => { setShowAddRole(false); setNewRoleName(''); }}
+                        className="text-sm text-gray-400 hover:text-gray-600"
+                      >
+                        ביטול
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowAddRole(true)}
+                    className="flex flex-col items-center gap-2 text-gray-300 hover:text-indigo-400 transition-colors"
+                  >
+                    <span className="text-5xl font-light leading-none">+</span>
+                    <span className="text-sm font-medium">הוסף תפקיד</span>
+                  </button>
+                )}
+              </div>
             </div>
           </>
         )}

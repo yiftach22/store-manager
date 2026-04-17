@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { requireManager } from '../middleware/auth';
+import { requireManager, requireOrdersAccess } from '../middleware/auth';
 import * as orderController from '../controllers/order.controller';
 
 export const router = Router();
@@ -13,6 +13,6 @@ router.delete('/lists/:id', requireManager, orderController.deleteList);
 router.get('/templates', requireManager, orderController.getTemplates);
 router.post('/templates', requireManager, orderController.createTemplate);
 router.patch('/templates/:id/toggle', requireManager, orderController.toggleTemplate);
-router.post('/instances', requireManager, orderController.createInstance);
+router.post('/instances', requireOrdersAccess, orderController.createInstance);
 router.patch('/instances/:id/toggle', orderController.toggleInstance);
 router.post('/sync', requireManager, orderController.syncOrders);

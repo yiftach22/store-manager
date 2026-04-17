@@ -95,13 +95,13 @@ export function TaskStatusPage() {
       <NavBar />
 
       <header className="bg-white border-b border-gray-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-3">
-            <h1 className="text-lg font-bold text-gray-800">מעקב משימות</h1>
+        <div className="max-w-6xl mx-auto px-6 py-5">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl font-bold text-gray-800">מעקב משימות</h1>
             <button
               onClick={handleSync}
               disabled={syncing}
-              className="text-xs text-indigo-500 hover:text-indigo-700 disabled:opacity-50"
+              className="text-sm text-indigo-500 hover:text-indigo-700 disabled:opacity-50"
             >
               {syncing ? 'מייצר...' : 'צור משימות להיום'}
             </button>
@@ -111,22 +111,22 @@ export function TaskStatusPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSelectedDate((d) => subDays(d, 1))}
-              className="text-gray-400 hover:text-gray-600 px-2 py-1 rounded hover:bg-gray-100"
+              className="text-gray-400 hover:text-gray-600 px-2.5 py-1.5 rounded hover:bg-gray-100"
             >
               →
             </button>
-            <span className="text-sm font-medium text-gray-700 min-w-52 text-center">
+            <span className="text-base font-medium text-gray-700 min-w-52 text-center">
               {dateLabel}
             </span>
             <button
               onClick={() => setSelectedDate((d) => addDays(d, 1))}
-              className="text-gray-400 hover:text-gray-600 px-2 py-1 rounded hover:bg-gray-100"
+              className="text-gray-400 hover:text-gray-600 px-2.5 py-1.5 rounded hover:bg-gray-100"
             >
               ←
             </button>
             <button
               onClick={() => setSelectedDate(new Date())}
-              className="text-xs text-indigo-500 hover:text-indigo-700 mr-2"
+              className="text-sm text-indigo-500 hover:text-indigo-700 mr-2"
             >
               היום
             </button>
@@ -134,7 +134,7 @@ export function TaskStatusPage() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-6">
+      <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-8">
         {loading && <div className="text-center text-gray-400 py-12">טוען...</div>}
         {error && <div className="text-center text-red-500 py-12">{error}</div>}
 
@@ -143,7 +143,7 @@ export function TaskStatusPage() {
             {(statusData.length === 0 || isEmpty) && (
               <div className="text-center text-gray-400 py-12">אין נתונים לתאריך זה</div>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {statusData
                 .filter((r) => r.daily.length > 0 || r.weekly.length > 0)
                 .map((roleStatus) => (

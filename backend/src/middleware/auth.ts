@@ -28,3 +28,12 @@ export function requireManager(req: Request, _res: Response, next: NextFunction)
   }
   next();
 }
+
+// Allows MANAGER or ORDERS — used for endpoints that let orders-role users act on orders
+// beyond what any authenticated user already has (currently just POST /api/orders/instances).
+export function requireOrdersAccess(req: Request, _res: Response, next: NextFunction) {
+  if (req.user?.role !== Role.MANAGER && req.user?.role !== Role.ORDERS) {
+    return next(new AppError('Orders access required', 403, ErrorCode.FORBIDDEN));
+  }
+  next();
+}

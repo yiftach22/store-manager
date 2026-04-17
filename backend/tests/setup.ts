@@ -5,3 +5,5 @@ process.env.DATABASE_URL = 'postgresql://postgres:postgres@localhost:5432/nitsat
 process.env.JWT_SECRET = 'test-secret-key-for-jest';
 process.env.JWT_EXPIRES_IN = '1h';
 process.env.PORT = '3001';
+// Lock tests to Israel TZ to match production behaviour (src/index.ts does the same).
+process.env.TZ = 'Asia/Jerusalem';

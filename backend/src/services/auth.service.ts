@@ -12,12 +12,14 @@ export async function register(data: {
   email: string;
   password: string;
 }) {
-  const existing = await prisma.user.findUnique({ where: { email: data.email } });
+  const email = data.email.trim().toLowerCase();
+
+  const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     throw new AppError('Email already in use', 409, ErrorCode.EMAIL_TAKEN);
   }
 
-  const allowed = await prisma.allowedEmail.findUnique({ where: { email: data.email } });
+  const allowed = await prisma.allowedEmail.findUnique({ where: { email } });
   if (!allowed) {
     throw new AppError('Email not authorized to register', 403, ErrorCode.FORBIDDEN);
   }
@@ -26,8 +28,8 @@ export async function register(data: {
 
   const user = await prisma.user.create({
     data: {
-      name: data.name,
-      email: data.email,
+      name: data.name.trim(),
+      email,
       passwordHash,
       role: allowed.role,
     },
@@ -50,7 +52,8 @@ export async function register(data: {
 }
 
 export async function login(data: { email: string; password: string }) {
-  const user = await prisma.user.findUnique({ where: { email: data.email } });
+  const email = data.email.trim().toLowerCase();
+  const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
     throw new AppError('Invalid credentials', 401, ErrorCode.INVALID_CREDENTIALS);
   }

@@ -127,7 +127,7 @@ export async function getWeek(req: Request, res: Response, next: NextFunction) {
     const now = startOfDay(new Date());
     const dailyInstances = await prisma.orderInstance.findMany({
       where: { currentDate: { gte: weekStartDay, lte: weekEnd }, listId: null },
-      include: { template: true },
+      include: { template: true, completedBy: { select: { name: true } } },
     });
 
     // An instance is overdue (red) only if:
@@ -137,6 +137,12 @@ export async function getWeek(req: Request, res: Response, next: NextFunction) {
     const computeOverdue = (inst: { status: boolean; currentDate: Date; createdAt: Date }) =>
       !inst.status && inst.currentDate < now && inst.createdAt <= endOfDay(inst.currentDate);
 
+    const flatten = <T extends { completedBy?: { name: string } | null }>(inst: T) => ({
+      ...inst,
+      completedByName: inst.completedBy?.name ?? null,
+      completedBy: undefined,
+    });
+
     const days = Array.from({ length: 6 }, (_, i) => {
       const date = addDays(weekStart, i);
       const dateStr = format(date, 'yyyy-MM-dd');
@@ -144,7 +150,7 @@ export async function getWeek(req: Request, res: Response, next: NextFunction) {
       const dayEnd = endOfDay(date);
       const instances = dailyInstances
         .filter((inst) => inst.currentDate >= dayStart && inst.currentDate <= dayEnd)
-        .map((inst) => ({ ...inst, isOverdue: computeOverdue(inst) }))
+        .map((inst) => flatten({ ...inst, isOverdue: computeOverdue(inst) }))
         .sort(sortInstances);
       return { date: dateStr, dayOfWeek: i, label: DAY_LABELS[i], instances };
     });
@@ -153,10 +159,10 @@ export async function getWeek(req: Request, res: Response, next: NextFunction) {
       activeLists.map(async (list) => {
         const rawInstances = await prisma.orderInstance.findMany({
           where: { listId: list.id, originalDate: weekStartDay },
-          include: { template: true },
+          include: { template: true, completedBy: { select: { name: true } } },
         });
         const instances = rawInstances
-          .map((inst) => ({ ...inst, isOverdue: computeOverdue(inst) }))
+          .map((inst) => flatten({ ...inst, isOverdue: computeOverdue(inst) }))
           .sort(sortInstances);
         return { id: list.id, name: list.name, instances };
       })
@@ -417,13 +423,25 @@ export async function toggleInstance(req: Request, res: Response, next: NextFunc
       data: {
         status: newStatus,
         completedAt: newStatus ? new Date() : null,
+        completedById: newStatus ? req.user!.id : null,
       },
+      include: { completedBy: { select: { name: true } } },
     });
 
-    const io = req.app.get('io') as Server;
-    io.emit('instance:toggled', { id: updated.id, status: updated.status });
+    const payload = {
+      ...updated,
+      completedByName: updated.completedBy?.name ?? null,
+    };
 
-    res.json(updated);
+    const io = req.app.get('io') as Server;
+    io.emit('instance:toggled', {
+      id: updated.id,
+      status: updated.status,
+      completedAt: updated.completedAt ?? null,
+      completedByName: updated.completedBy?.name ?? null,
+    });
+
+    res.json(payload);
   } catch (err) {
     next(err);
   }

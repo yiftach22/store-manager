@@ -10,13 +10,14 @@ interface Props {
   isPast: boolean;
   isFuture: boolean;
   isManager: boolean;
+  canAddOneOff: boolean;
   isEditMode: boolean;
   onToggle: (id: number) => void;
   onAdded: (date: string, instance: OrderInstance) => void;
   onTemplatesChanged?: () => void;
 }
 
-export function DayColumn({ day, isToday, isPast, isFuture, isManager, isEditMode, onToggle, onAdded, onTemplatesChanged }: Props) {
+export function DayColumn({ day, isToday, isPast, isFuture, isManager, canAddOneOff, isEditMode, onToggle, onAdded, onTemplatesChanged }: Props) {
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
 
@@ -32,30 +33,32 @@ export function DayColumn({ day, isToday, isPast, isFuture, isManager, isEditMod
       {/* Faded wrapper for past days — opacity only, no pointer-events-none so items stay clickable */}
       <div className={isPast ? 'opacity-70' : ''}>
         {/* Day header */}
-        <div className={`px-3 py-2 text-center font-semibold text-sm ${headerClass}`}>
+        <div className={`px-4 py-3 text-center font-semibold text-base ${headerClass}`}>
           <div>{day.label}</div>
-          <div className={`text-xs font-normal ${isToday ? 'text-indigo-100' : 'text-gray-400'}`}>
+          <div className={`text-sm font-normal ${isToday ? 'text-indigo-100' : 'text-gray-400'}`}>
             {day.date.slice(5).split('-').reverse().join('/')}
           </div>
         </div>
 
         {/* Orders list */}
-        <ul className="flex-1 p-2 flex flex-col gap-0.5 min-h-16">
+        <ul className="flex-1 p-3 flex flex-col gap-1 min-h-16">
           {day.instances.map((inst) => (
             <OrderItem
               key={inst.id}
               instance={inst}
               disabled={isFuture}
+              isEditMode={isEditMode}
               onToggle={onToggle}
             />
           ))}
         </ul>
 
-        {/* Manager add button — only in normal mode, non-past */}
-        {isManager && !isPast && !isEditMode && (
+        {/* One-off add button — MANAGER or ORDERS, normal mode only.
+            Past-day gate was dropped: ORDERS users may backfill historical days. */}
+        {canAddOneOff && !isEditMode && (
           <button
             onClick={() => setShowModal(true)}
-            className="text-xs text-indigo-500 hover:text-indigo-700 px-3 py-1.5 text-right border-t border-gray-100"
+            className="text-sm text-indigo-500 hover:text-indigo-700 px-4 py-2 text-right border-t border-gray-100"
           >
             + הוסף פריט
           </button>
@@ -67,7 +70,7 @@ export function DayColumn({ day, isToday, isPast, isFuture, isManager, isEditMod
         <button
           onClick={() => setShowEditModal(true)}
           title="ערוך תבניות"
-          className={`absolute top-1 left-1 text-xs opacity-60 hover:opacity-100 leading-none px-1 py-0.5 rounded ${isToday ? 'text-white hover:bg-indigo-500' : 'text-gray-500 hover:bg-gray-200'}`}
+          className={`absolute top-1 left-1 text-sm opacity-60 hover:opacity-100 leading-none px-1.5 py-1 rounded ${isToday ? 'text-white hover:bg-indigo-500' : 'text-gray-500 hover:bg-gray-200'}`}
         >
           ✎
         </button>

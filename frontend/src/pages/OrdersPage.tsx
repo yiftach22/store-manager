@@ -17,6 +17,9 @@ function getSundayOfWeek(d: Date): Date {
 export function OrdersPage() {
   const { user } = useAuth();
   const isManager = user?.role === 'MANAGER';
+  // MANAGER and ORDERS can both add one-off items. ORDERS cannot enter edit mode,
+  // trigger rollover, or create new lists — those stay manager-only below.
+  const canAddOneOff = user?.role === 'MANAGER' || user?.role === 'ORDERS';
 
   const [weekStart, setWeekStart] = useState<Date>(() => getSundayOfWeek(new Date()));
   const [weekData, setWeekData] = useState<WeekData | null>(null);
@@ -31,12 +34,21 @@ export function OrdersPage() {
       auth: { token: localStorage.getItem('token') ?? '' },
     });
 
-    socket.on('instance:toggled', ({ id, status }: { id: number; status: boolean }) => {
+    socket.on('instance:toggled', ({ id, status, completedAt, completedByName }: {
+      id: number;
+      status: boolean;
+      completedAt?: string | null;
+      completedByName?: string | null;
+    }) => {
       setWeekData((prev) => {
         if (!prev) return prev;
         const applyUpdate = (instances: OrderInstance[]) => {
           if (!instances.some((i) => i.id === id)) return instances;
-          const next = instances.map((i) => (i.id === id ? { ...i, status } : i));
+          const next = instances.map((i) =>
+            i.id === id
+              ? { ...i, status, completedAt: completedAt ?? null, completedByName: completedByName ?? null }
+              : i
+          );
           return [
             ...next.filter((i) => !i.status && i.isOverdue),
             ...next.filter((i) => !i.status && !i.isOverdue),
@@ -166,7 +178,7 @@ export function OrdersPage() {
         />
       </header>
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-6 flex flex-col gap-8">
+      <main className="flex-1 w-full px-8 py-8 flex flex-col gap-10">
         <>
             {loading && <div className="text-center text-gray-400 py-12">טוען...</div>}
             {error && <div className="text-center text-red-500 py-12">{error}</div>}
@@ -174,32 +186,32 @@ export function OrdersPage() {
             {weekData && !loading && (
               <>
                 <section>
-                  <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-base font-semibold text-gray-700">הזמנות יומיות</h2>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-gray-700">הזמנות יומיות</h2>
                     {isManager && (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         {syncMsg && (
-                          <span className={`text-xs ${syncMsg.includes('שגיאה') ? 'text-red-500' : 'text-green-600'}`}>
+                          <span className={`text-sm ${syncMsg.includes('שגיאה') ? 'text-red-500' : 'text-green-600'}`}>
                             {syncMsg}
                           </span>
                         )}
                         <button
                           onClick={handleManualSync}
                           disabled={syncing}
-                          className="text-xs px-2.5 py-1 rounded-full border border-gray-300 text-gray-500 hover:border-indigo-400 hover:text-indigo-600 transition-colors disabled:opacity-50"
+                          className="text-sm px-3 py-1.5 rounded-full border border-gray-300 text-gray-500 hover:border-indigo-400 hover:text-indigo-600 transition-colors disabled:opacity-50"
                         >
                           {syncing ? 'מפעיל...' : 'הפעל רולאובר'}
                         </button>
                         <button
                           onClick={() => setIsEditMode((v) => !v)}
-                          className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${isEditMode ? 'bg-orange-100 border-orange-300 text-orange-700' : 'border-gray-300 text-gray-500 hover:border-gray-400'}`}
+                          className={`text-sm px-3 py-1.5 rounded-full border transition-colors ${isEditMode ? 'bg-orange-100 border-orange-300 text-orange-700' : 'border-gray-300 text-gray-500 hover:border-gray-400'}`}
                         >
                           {isEditMode ? 'סיום עריכה' : 'עריכת תבניות'}
                         </button>
                       </div>
                     )}
                   </div>
-                  <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+                  <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
                     {weekData.days.map((day) => {
                       const dayDate = startOfDay(new Date(day.date + 'T00:00:00'));
                       const isToday = isSameDay(dayDate, today);
@@ -212,6 +224,7 @@ export function OrdersPage() {
                           isPast={isPast}
                           isFuture={isFutureWeek}
                           isManager={isManager}
+                          canAddOneOff={canAddOneOff}
                           isEditMode={isEditMode}
                           onToggle={handleToggle}
                           onAdded={handleDayAdded}
@@ -224,26 +237,16 @@ export function OrdersPage() {
 
                 {(weekData.lists.length > 0 || isManager) && (
                   <section>
-                    <div className="flex items-center justify-between mb-3">
-                      <h2 className="text-base font-semibold text-gray-700">רשימות שבועיות</h2>
-                      {isManager && isEditMode && (
-                        <button
-                          onClick={() => setShowNewListModal(true)}
-                          className="text-xs text-indigo-500 hover:text-indigo-700 font-medium"
-                        >
-                          + הוסף רשימה
-                        </button>
-                      )}
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-lg font-semibold text-gray-700">הזמנות שבועיות</h2>
                     </div>
-                    {weekData.lists.length === 0 && (
-                      <div className="text-center text-gray-400 text-sm py-4">אין רשימות שבועיות</div>
-                    )}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
                       {weekData.lists.map((list) => (
                         <FloatingList
                           key={list.id}
                           list={list}
                           isManager={isManager}
+                          canAddOneOff={canAddOneOff}
                           isEditMode={isEditMode}
                           isFuture={isFutureWeek}
                           weekStart={weekData.weekStart}
@@ -254,12 +257,25 @@ export function OrdersPage() {
                           onTemplatesChanged={() => fetchWeek(weekStart)}
                         />
                       ))}
+
+                      {/* Add list card — manager only */}
+                      {isManager && isEditMode && (
+                        <div className="bg-white rounded-xl border-2 border-dashed border-gray-200 overflow-hidden flex items-center justify-center min-h-[8rem]">
+                          <button
+                            onClick={() => setShowNewListModal(true)}
+                            className="flex flex-col items-center gap-2 text-gray-300 hover:text-indigo-400 transition-colors"
+                          >
+                            <span className="text-5xl font-light leading-none">+</span>
+                            <span className="text-sm font-medium">הוסף רשימה</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </section>
                 )}
 
                 {weekData.lists.length === 0 && !isManager && (
-                  <div className="text-center text-gray-400 text-sm py-4">אין רשימות שבועיות</div>
+                  <div className="text-center text-gray-400 text-sm py-4">אין הזמנות שבועיות</div>
                 )}
               </>
             )}

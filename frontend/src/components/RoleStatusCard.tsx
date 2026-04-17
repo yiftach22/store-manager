@@ -11,13 +11,13 @@ function ProgressBar({ done, total, color }: { done: number; total: number; colo
   const pct = total === 0 ? 0 : Math.round((done / total) * 100);
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 bg-gray-100 rounded-full h-3">
+      <div className="flex-1 bg-gray-100 rounded-full h-3.5">
         <div
-          className={`${color} rounded-full h-3 transition-all`}
+          className={`${color} rounded-full h-3.5 transition-all`}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="text-xs text-gray-500 w-10 text-left">
+      <span className="text-sm text-gray-500 w-10 text-left">
         {done}/{total}
       </span>
     </div>
@@ -40,18 +40,18 @@ function TaskList({ instances, label }: { instances: TaskInstance[]; label: stri
   if (instances.length === 0) return null;
   return (
     <div className="mt-3">
-      <p className="text-xs font-semibold text-gray-400 mb-1">{label}</p>
-      <ul className="space-y-1.5">
+      <p className="text-sm font-semibold text-gray-400 mb-1.5">{label}</p>
+      <ul className="space-y-2">
         {instances.map((t) => (
           <li key={t.id} className="flex items-center gap-2">
             <span className={t.status ? 'text-green-500' : 'text-gray-300'}>
               {t.status ? '✓' : '○'}
             </span>
-            <span className={`text-sm ${t.status ? 'text-green-700' : 'text-gray-500'}`}>
+            <span className={`text-base ${t.status ? 'text-green-700' : 'text-gray-500'}`}>
               {t.title}
             </span>
             {t.status && (
-              <span className="text-xs text-gray-400 mr-auto">{completionLabel(t)}</span>
+              <span className="text-sm text-gray-400 mr-auto">{completionLabel(t)}</span>
             )}
           </li>
         ))}
@@ -67,32 +67,32 @@ export function RoleStatusCard({ roleStatus }: Props) {
   const weeklyDone = weekly.filter((t) => t.status).length;
 
   return (
-    <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4">
-      <h3 className="font-semibold text-gray-800 mb-3">{role.name}</h3>
+    <div className="bg-white rounded-xl shadow-md border border-gray-200 p-5">
+      <h3 className="text-base font-semibold text-gray-800 mb-3">{role.name}</h3>
 
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         {daily.length > 0 ? (
           <div>
-            <p className="text-xs text-gray-400 mb-1">יומי</p>
+            <p className="text-sm text-gray-400 mb-1">יומי</p>
             <ProgressBar done={dailyDone} total={daily.length} color="bg-indigo-500" />
           </div>
         ) : (
-          <p className="text-xs text-gray-300">יומי — אין משימות</p>
+          <p className="text-sm text-gray-300">יומי — אין משימות</p>
         )}
 
         {weekly.length > 0 ? (
           <div>
-            <p className="text-xs text-gray-400 mb-1">שבועי</p>
+            <p className="text-sm text-gray-400 mb-1">שבועי</p>
             <ProgressBar done={weeklyDone} total={weekly.length} color="bg-green-500" />
           </div>
         ) : (
-          <p className="text-xs text-gray-300">שבועי — אין משימות</p>
+          <p className="text-sm text-gray-300">שבועי — אין משימות</p>
         )}
       </div>
 
-      <div className="mt-3 pt-3 border-t border-gray-100">
+      <div className="mt-4 pt-3 border-t border-gray-100">
         {daily.length === 0 && weekly.length === 0 && (
-          <p className="text-xs text-gray-400">אין משימות לתאריך זה</p>
+          <p className="text-sm text-gray-400">אין משימות לתאריך זה</p>
         )}
         <TaskList instances={daily} label="משימות יומיות" />
         <TaskList instances={weekly} label="משימות שבועיות" />

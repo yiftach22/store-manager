@@ -1,3 +1,8 @@
+// MUST run before any other imports — locks the process to Israel local time so
+// all downstream date-fns calls (startOfDay, startOfWeek, getDay, cron schedule)
+// interpret dates in Asia/Jerusalem instead of UTC/server local.
+process.env.TZ = process.env.TZ ?? 'Asia/Jerusalem';
+
 import './config/env';
 import http from 'http';
 import jwt from 'jsonwebtoken';
@@ -32,27 +37,31 @@ async function main() {
 
   app.set('io', io);
 
-  // Daily rollover at 00:01 every day (Sun–Sat; service skips Saturday internally)
-  cron.schedule('1 0 * * *', async () => {
-    const now = new Date();
-    console.log('[cron] Running daily rollover...');
-    try {
-      const result = await processDailyRollover(now);
-      console.log(`[cron] Rollover complete — updated: ${result.updated}, created: ${result.created}`);
-    } catch (err) {
-      console.error('[cron] Rollover failed:', err);
-    }
-    console.log('[cron] Generating task instances...');
-    try {
-      const result = await generateTaskInstances(now);
-      console.log(`[cron] Task generation complete — created: ${result.created}`);
-    } catch (err) {
-      console.error('[cron] Task generation failed:', err);
-    }
-  });
+  // Daily rollover at 00:01 Asia/Jerusalem every day (Sun–Sat; service skips Saturday internally)
+  cron.schedule(
+    '1 0 * * *',
+    async () => {
+      const now = new Date();
+      console.log('[cron] Running daily rollover...');
+      try {
+        const result = await processDailyRollover(now);
+        console.log(`[cron] Rollover complete — updated: ${result.updated}, created: ${result.created}`);
+      } catch (err) {
+        console.error('[cron] Rollover failed:', err);
+      }
+      console.log('[cron] Generating task instances...');
+      try {
+        const result = await generateTaskInstances(now);
+        console.log(`[cron] Task generation complete — created: ${result.created}`);
+      } catch (err) {
+        console.error('[cron] Task generation failed:', err);
+      }
+    },
+    { timezone: 'Asia/Jerusalem' }
+  );
 
   server.listen(config.port, () => {
-    console.log(`Server running on port ${config.port} [${config.nodeEnv}]`);
+    console.log(`Server running on port ${config.port} [${config.nodeEnv}] tz=${process.env.TZ}`);
   });
 
   process.on('SIGTERM', async () => {

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { homePathFor } from '../lib/roles';
 
 export function RegisterPage() {
   const { login } = useAuth();
@@ -34,8 +35,8 @@ export function RegisterPage() {
         return;
       }
       // Log in with the new account
-      await login(email, password);
-      navigate('/');
+      const role = await login(email, password);
+      navigate(homePathFor(role));
     } catch {
       setError('שגיאה בהרשמה');
     } finally {

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { homePathFor } from '../lib/roles';
 
 export function LoginPage() {
   const { login } = useAuth();
@@ -17,7 +18,7 @@ export function LoginPage() {
     setLoading(true);
     try {
       const role = await login(email, password);
-      navigate(role === 'MANAGER' ? '/' : '/my-tasks');
+      navigate(homePathFor(role));
     } catch {
       setError('אימייל או סיסמה שגויים');
     } finally {

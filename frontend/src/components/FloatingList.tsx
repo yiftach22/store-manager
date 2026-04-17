@@ -7,6 +7,7 @@ import { EditTemplatesModal } from './EditTemplatesModal';
 interface Props {
   list: ListData;
   isManager: boolean;
+  canAddOneOff: boolean;
   isEditMode: boolean;
   isFuture: boolean;
   weekStart: string;  // 'YYYY-MM-DD' — used as the date for new one-off instances
@@ -17,7 +18,7 @@ interface Props {
   onTemplatesChanged?: () => void;
 }
 
-export function FloatingList({ list, isManager, isEditMode, isFuture, weekStart, onToggle, onAdded, onListDeleted, onListRenamed, onTemplatesChanged }: Props) {
+export function FloatingList({ list, isManager, canAddOneOff, isEditMode, isFuture, weekStart, onToggle, onAdded, onListDeleted, onListRenamed, onTemplatesChanged }: Props) {
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -38,38 +39,38 @@ export function FloatingList({ list, isManager, isEditMode, isFuture, weekStart,
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       {/* List header */}
-      <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-200 flex items-center gap-2">
-        <span className="flex-1 font-semibold text-gray-800 text-sm">{displayName}</span>
-        <span className="text-xs text-gray-400">{list.instances.filter(i => !i.status).length} פתוחים</span>
+      <div className="px-5 py-3 bg-gray-50 border-b border-gray-200 flex items-center gap-3">
+        <span className="flex-1 font-semibold text-gray-800 text-base">{displayName}</span>
+        <span className="text-sm text-gray-400">{list.instances.filter(i => !i.status).length} פתוחים</span>
         {isManager && isEditMode && !showDeleteConfirm && (
           <>
             <button
               onClick={() => setShowEditModal(true)}
-              className="text-xs text-indigo-500 hover:text-indigo-700"
+              className="text-sm text-indigo-500 hover:text-indigo-700"
             >
               ערוך
             </button>
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="text-xs text-red-400 hover:text-red-600"
+              className="text-sm text-red-400 hover:text-red-600"
             >
               מחק
             </button>
           </>
         )}
         {isManager && isEditMode && showDeleteConfirm && (
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-red-600">בטוח?</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-red-600">בטוח?</span>
             <button
               onClick={() => setShowDeleteConfirm(false)}
-              className="text-xs text-gray-400 hover:text-gray-600"
+              className="text-sm text-gray-400 hover:text-gray-600"
             >
               ביטול
             </button>
             <button
               onClick={handleDelete}
               disabled={deleting}
-              className="text-xs bg-red-500 text-white rounded px-2 py-0.5 hover:bg-red-600 disabled:opacity-50"
+              className="text-sm bg-red-500 text-white rounded px-2.5 py-1 hover:bg-red-600 disabled:opacity-50"
             >
               מחק
             </button>
@@ -78,20 +79,20 @@ export function FloatingList({ list, isManager, isEditMode, isFuture, weekStart,
       </div>
 
       {/* Orders */}
-      <ul className="p-2 flex flex-col gap-0.5 min-h-10">
+      <ul className="p-3 flex flex-col gap-1 min-h-10">
         {list.instances.length === 0 && (
-          <li className="text-xs text-gray-400 px-2 py-2">אין פריטים</li>
+          <li className="text-sm text-gray-400 px-2 py-2">אין פריטים</li>
         )}
         {list.instances.map((inst) => (
-          <OrderItem key={inst.id} instance={inst} disabled={isFuture} onToggle={onToggle} />
+          <OrderItem key={inst.id} instance={inst} disabled={isFuture} isEditMode={isEditMode} onToggle={onToggle} />
         ))}
       </ul>
 
-      {/* Manager add button — only in normal mode */}
-      {isManager && !isEditMode && (
+      {/* One-off add button — MANAGER or ORDERS, normal mode only */}
+      {canAddOneOff && !isEditMode && (
         <button
           onClick={() => setShowModal(true)}
-          className="w-full text-xs text-indigo-500 hover:text-indigo-700 px-4 py-2 text-right border-t border-gray-100"
+          className="w-full text-sm text-indigo-500 hover:text-indigo-700 px-5 py-2.5 text-right border-t border-gray-100"
         >
           + הוסף פריט לשבוע זה
         </button>

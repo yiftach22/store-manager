@@ -145,10 +145,12 @@ describe('PATCH /api/orders/instances/:id/toggle', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.status).toBe(true);
-    expect(db.orderInstance.update).toHaveBeenCalledWith({
-      where: { id: 1 },
-      data: { status: true },
-    });
+    expect(db.orderInstance.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 1 },
+        data: expect.objectContaining({ status: true, completedById: expect.any(Number) }),
+      })
+    );
   });
 
   it('flips status from true → false', async () => {

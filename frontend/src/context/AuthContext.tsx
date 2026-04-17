@@ -1,19 +1,20 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { api, setLogoutCallback } from '../lib/api';
+import type { Role } from '../lib/roles';
 
 interface User {
   id: number;
   name: string;
   email: string;
-  role: 'MANAGER' | 'WORKER';
+  role: Role;
 }
 
 interface AuthContextValue {
   user: User | null;
   token: string | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<'MANAGER' | 'WORKER'>;
+  login: (email: string, password: string) => Promise<Role>;
   logout: () => void;
 }
 
@@ -33,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setIsLoading(false));
   }, []);
 
-  async function login(email: string, password: string): Promise<'MANAGER' | 'WORKER'> {
+  async function login(email: string, password: string): Promise<Role> {
     const res = await api.post<{ token: string; user: User }>('/auth/login', { email, password });
     localStorage.setItem('token', res.data.token);
     setToken(res.data.token);
