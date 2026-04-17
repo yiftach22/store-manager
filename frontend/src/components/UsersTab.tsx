@@ -39,20 +39,26 @@ export function UsersTab() {
   const [newJobRoleId, setNewJobRoleId] = useState<string>('');
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
   const [resettingUser, setResettingUser] = useState<User | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [resetStatus, setResetStatus] = useState<'idle' | 'saving' | 'done' | 'error'>('idle');
   const [resetError, setResetError] = useState('');
 
   async function load() {
-    const [u, a, r] = await Promise.all([
-      api.get<User[]>('/api/users'),
-      api.get<AllowedEmail[]>('/api/users/allowed-emails'),
-      api.get<JobRole[]>('/api/roles'),
-    ]);
-    setUsers(u.data);
-    setAllowed(a.data);
-    setRoles(r.data.filter((r) => r.isActive));
+    setLoading(true);
+    try {
+      const [u, a, r] = await Promise.all([
+        api.get<User[]>('/api/users'),
+        api.get<AllowedEmail[]>('/api/users/allowed-emails'),
+        api.get<JobRole[]>('/api/roles'),
+      ]);
+      setUsers(u.data);
+      setAllowed(a.data);
+      setRoles(r.data.filter((r) => r.isActive));
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => { load(); }, []);
@@ -195,7 +201,9 @@ export function UsersTab() {
           </form>
           {error && <p className="text-red-500 text-sm px-4 py-1">{error}</p>}
 
-          {allowed.length === 0 ? (
+          {loading ? (
+            <p className="text-base text-gray-400 px-4 py-3">טוען...</p>
+          ) : allowed.length === 0 ? (
             <p className="text-base text-gray-400 px-4 py-3">אין אימיילים מאושרים</p>
           ) : (
             <ul>
@@ -296,7 +304,9 @@ export function UsersTab() {
       <section>
         <h2 className="text-lg font-semibold text-gray-700 mb-4">משתמשים רשומים</h2>
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          {users.length === 0 ? (
+          {loading ? (
+            <p className="text-base text-gray-400 px-4 py-3">טוען...</p>
+          ) : users.length === 0 ? (
             <p className="text-base text-gray-400 px-4 py-3">אין משתמשים</p>
           ) : (
             <ul>

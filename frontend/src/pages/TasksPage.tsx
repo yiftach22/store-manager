@@ -6,6 +6,9 @@ import type { JobRole, TaskTemplate } from '../types/tasks';
 import { NavBar } from '../components/NavBar';
 import { RoleCard } from '../components/RoleCard';
 
+let _rolesCache: JobRole[] | null = null;
+let _templatesCache: Record<number, TaskTemplate[]> | null = null;
+
 export function TasksPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -15,9 +18,9 @@ export function TasksPage() {
     if (user && user.role !== 'MANAGER') navigate('/', { replace: true });
   }, [user, navigate]);
 
-  const [roles, setRoles] = useState<JobRole[]>([]);
-  const [templates, setTemplates] = useState<Record<number, TaskTemplate[]>>({});
-  const [loading, setLoading] = useState(false);
+  const [roles, setRoles] = useState<JobRole[]>(_rolesCache ?? []);
+  const [templates, setTemplates] = useState<Record<number, TaskTemplate[]>>(_templatesCache ?? {});
+  const [loading, setLoading] = useState(!_rolesCache);
   const [error, setError] = useState('');
   const [showAddRole, setShowAddRole] = useState(false);
   const [newRoleName, setNewRoleName] = useState('');
@@ -34,6 +37,7 @@ export function TasksPage() {
       const rolesRes = await api.get<JobRole[]>('/api/roles');
       const fetchedRoles = rolesRes.data;
       setRoles(fetchedRoles);
+      _rolesCache = fetchedRoles;
 
       const templateResults = await Promise.all(
         fetchedRoles.map((r) =>
@@ -49,6 +53,7 @@ export function TasksPage() {
         templateMap[roleId] = ts;
       }
       setTemplates(templateMap);
+      _templatesCache = templateMap;
     } catch {
       setError('שגיאה בטעינת הנתונים');
     } finally {
