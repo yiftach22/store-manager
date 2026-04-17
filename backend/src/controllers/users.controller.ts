@@ -33,6 +33,31 @@ export async function getUsers(req: Request, res: Response, next: NextFunction) 
   }
 }
 
+// GET /api/users/management — users + allowed-emails in one call
+export async function getUsersManagement(req: Request, res: Response, next: NextFunction) {
+  try {
+    const [users, allowed] = await Promise.all([
+      prisma.user.findMany({
+        select: {
+          id: true, name: true, email: true, role: true, createdAt: true,
+          jobRoles: { select: { role: { select: { id: true, name: true } } } },
+        },
+        orderBy: { createdAt: 'asc' },
+      }),
+      prisma.allowedEmail.findMany({
+        orderBy: { createdAt: 'desc' },
+        include: { jobRole: { select: { id: true, name: true } } },
+      }),
+    ]);
+    res.json({
+      users: users.map((u) => ({ ...u, jobRole: u.jobRoles[0]?.role ?? null, jobRoles: undefined })),
+      allowed,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 // GET /api/users/allowed-emails
 export async function getAllowedEmails(req: Request, res: Response, next: NextFunction) {
   try {

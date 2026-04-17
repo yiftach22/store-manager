@@ -52,16 +52,15 @@ export function UsersTab() {
   async function load() {
     if (!_usersCache) setLoading(true);
     try {
-      const [u, a, r] = await Promise.all([
-        api.get<User[]>('/api/users'),
-        api.get<AllowedEmail[]>('/api/users/allowed-emails'),
+      const [mgmt, r] = await Promise.all([
+        api.get<{ users: User[]; allowed: AllowedEmail[] }>('/api/users/management'),
         api.get<JobRole[]>('/api/roles'),
       ]);
-      _usersCache = u.data;
-      _allowedCache = a.data;
+      _usersCache = mgmt.data.users;
+      _allowedCache = mgmt.data.allowed;
       _rolesCache = r.data.filter((r) => r.isActive);
-      setUsers(u.data);
-      setAllowed(a.data);
+      setUsers(_usersCache);
+      setAllowed(_allowedCache);
       setRoles(_rolesCache);
     } finally {
       setLoading(false);
