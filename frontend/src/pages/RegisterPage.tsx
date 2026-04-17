@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { homePathFor } from '../lib/roles';
 
@@ -18,22 +19,17 @@ export function RegisterPage() {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch('/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
+      const res = await api.post('/auth/register', { name, email, password }).catch(err => {
+        const status = err.response?.status;
+        const msg = err.response?.data?.error;
         setError(
-          res.status === 403
-            ? 'האימייל אינו מורשה להרשמה. פנה למנהל.'
-            : res.status === 409
-            ? 'כתובת אימייל זו כבר רשומה'
-            : data.error ?? 'שגיאה בהרשמה'
+          status === 403 ? 'האימייל אינו מורשה להרשמה. פנה למנהל.'
+          : status === 409 ? 'כתובת אימייל זו כבר רשומה'
+          : msg ?? 'שגיאה בהרשמה'
         );
-        return;
-      }
+        return null;
+      });
+      if (!res) return;
       // Log in with the new account
       const role = await login(email, password);
       navigate(homePathFor(role));
