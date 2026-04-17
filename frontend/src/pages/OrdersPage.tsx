@@ -14,6 +14,8 @@ function getSundayOfWeek(d: Date): Date {
   return startOfWeek(d, { weekStartsOn: 0 });
 }
 
+let _ordersCache: { weekStart: string; data: WeekData } | null = null;
+
 export function OrdersPage() {
   const { user } = useAuth();
   const isManager = user?.role === 'MANAGER';
@@ -22,8 +24,11 @@ export function OrdersPage() {
   const canAddOneOff = user?.role === 'MANAGER' || user?.role === 'ORDERS';
 
   const [weekStart, setWeekStart] = useState<Date>(() => getSundayOfWeek(new Date()));
-  const [weekData, setWeekData] = useState<WeekData | null>(null);
-  const [loading, setLoading] = useState(false);
+  const _thisWeek = format(getSundayOfWeek(new Date()), 'yyyy-MM-dd');
+  const [weekData, setWeekData] = useState<WeekData | null>(
+    _ordersCache?.weekStart === _thisWeek ? _ordersCache.data : null
+  );
+  const [loading, setLoading] = useState(_ordersCache?.weekStart !== _thisWeek);
   const [error, setError] = useState('');
   const [showNewListModal, setShowNewListModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -67,10 +72,12 @@ export function OrdersPage() {
   }, []);
 
   const fetchWeek = useCallback(async (sunday: Date) => {
-    setLoading(true);
+    const weekStr = format(sunday, 'yyyy-MM-dd');
+    if (_ordersCache?.weekStart !== weekStr) setLoading(true);
     setError('');
     try {
-      const res = await api.get<WeekData>(`/api/orders/week?weekOf=${format(sunday, 'yyyy-MM-dd')}`);
+      const res = await api.get<WeekData>(`/api/orders/week?weekOf=${weekStr}`);
+      _ordersCache = { weekStart: weekStr, data: res.data };
       setWeekData(res.data);
     } catch {
       setError('שגיאה בטעינת הנתונים');

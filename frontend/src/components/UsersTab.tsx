@@ -29,33 +29,40 @@ const ROLE_PILL_CLASS: Record<Role, string> = {
   WORKER: 'bg-gray-100 text-gray-600',
 };
 
+let _usersCache: User[] | null = null;
+let _allowedCache: AllowedEmail[] | null = null;
+let _rolesCache: JobRole[] | null = null;
+
 export function UsersTab() {
   const { user: currentUser } = useAuth();
-  const [users, setUsers] = useState<User[]>([]);
-  const [allowed, setAllowed] = useState<AllowedEmail[]>([]);
-  const [roles, setRoles] = useState<JobRole[]>([]);
+  const [users, setUsers] = useState<User[]>(_usersCache ?? []);
+  const [allowed, setAllowed] = useState<AllowedEmail[]>(_allowedCache ?? []);
+  const [roles, setRoles] = useState<JobRole[]>(_rolesCache ?? []);
   const [newEmail, setNewEmail] = useState('');
   const [newAuthRole, setNewAuthRole] = useState<Role>('WORKER');
   const [newJobRoleId, setNewJobRoleId] = useState<string>('');
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!_usersCache);
   const [resettingUser, setResettingUser] = useState<User | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [resetStatus, setResetStatus] = useState<'idle' | 'saving' | 'done' | 'error'>('idle');
   const [resetError, setResetError] = useState('');
 
   async function load() {
-    setLoading(true);
+    if (!_usersCache) setLoading(true);
     try {
       const [u, a, r] = await Promise.all([
         api.get<User[]>('/api/users'),
         api.get<AllowedEmail[]>('/api/users/allowed-emails'),
         api.get<JobRole[]>('/api/roles'),
       ]);
+      _usersCache = u.data;
+      _allowedCache = a.data;
+      _rolesCache = r.data.filter((r) => r.isActive);
       setUsers(u.data);
       setAllowed(a.data);
-      setRoles(r.data.filter((r) => r.isActive));
+      setRoles(_rolesCache);
     } finally {
       setLoading(false);
     }

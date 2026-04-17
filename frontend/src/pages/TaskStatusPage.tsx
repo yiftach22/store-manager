@@ -45,6 +45,9 @@ function OrderSummaryCard({ title, done, total, color }: OrderSummaryProps) {
   );
 }
 
+let _statusCache: { date: string; data: RoleStatus[] } | null = null;
+let _weekCache: WeekData | null = null;
+
 export function TaskStatusPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -54,13 +57,16 @@ export function TaskStatusPage() {
   }, [user, navigate]);
 
   const [selectedDate, setSelectedDate] = useState(() => new Date());
-  const [statusData, setStatusData] = useState<RoleStatus[]>([]);
-  const [loading, setLoading] = useState(false);
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
+  const [statusData, setStatusData] = useState<RoleStatus[]>(
+    _statusCache?.date === todayStr ? _statusCache.data : []
+  );
+  const [loading, setLoading] = useState(_statusCache?.date !== todayStr);
   const [error, setError] = useState('');
   const [syncing, setSyncing] = useState(false);
 
   // Orders summary state (always current week/today)
-  const [weekData, setWeekData] = useState<WeekData | null>(null);
+  const [weekData, setWeekData] = useState<WeekData | null>(_weekCache);
 
   async function handleSync() {
     setSyncing(true);
@@ -75,12 +81,11 @@ export function TaskStatusPage() {
   const isToday = (date: Date) => format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
 
   const fetchStatus = useCallback(async (date: Date) => {
-    setLoading(true);
+    const dateStr = format(date, 'yyyy-MM-dd');
+    if (_statusCache?.date !== dateStr) setLoading(true);
     setError('');
     try {
-      const res = await api.get<RoleStatus[]>(
-        `/api/tasks/status?date=${format(date, 'yyyy-MM-dd')}`
-      );
+      const res = await api.get<RoleStatus[]>(`/api/tasks/status?date=${dateStr}`);
       const data = res.data;
       const empty = data.every((r) => r.daily.length === 0 && r.weekly.length === 0);
 
@@ -88,14 +93,14 @@ export function TaskStatusPage() {
         setSyncing(true);
         try {
           await api.post('/api/tasks/sync');
-          const synced = await api.get<RoleStatus[]>(
-            `/api/tasks/status?date=${format(date, 'yyyy-MM-dd')}`
-          );
+          const synced = await api.get<RoleStatus[]>(`/api/tasks/status?date=${dateStr}`);
+          _statusCache = { date: dateStr, data: synced.data };
           setStatusData(synced.data);
         } finally {
           setSyncing(false);
         }
       } else {
+        _statusCache = { date: dateStr, data };
         setStatusData(data);
       }
     } catch {
@@ -109,7 +114,7 @@ export function TaskStatusPage() {
   useEffect(() => {
     const sunday = startOfWeek(new Date(), { weekStartsOn: 0 });
     api.get<WeekData>(`/api/orders/week?weekOf=${format(sunday, 'yyyy-MM-dd')}`)
-      .then((res) => setWeekData(res.data))
+      .then((res) => { _weekCache = res.data; setWeekData(res.data); })
       .catch(() => {/* silently ignore */});
   }, []);
 
@@ -138,7 +143,6 @@ export function TaskStatusPage() {
   const dateLabel = format(selectedDate, 'EEEE, d בMMMM yyyy', { locale: he });
 
   // Compute order summaries
-  const todayStr = format(new Date(), 'yyyy-MM-dd');
   const todayInstances = weekData?.days.find((d) => d.date === todayStr)?.instances ?? [];
   const dailyDone = todayInstances.filter((i) => i.status).length;
   const dailyTotal = todayInstances.length;

@@ -78,21 +78,24 @@ function TaskList({
   );
 }
 
+let _cache: { date: string; data: MyTasksData } | null = null;
+
 export function WorkerTasksPage() {
   const now = new Date();
   const isSaturday = getDay(now) === 6;
   const today = format(now, 'yyyy-MM-dd');
-  const [data, setData] = useState<MyTasksData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<MyTasksData | null>(_cache?.date === today ? _cache.data : null);
+  const [loading, setLoading] = useState(_cache?.date !== today);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<Tab>('daily');
 
   const fetchTasks = useCallback(async () => {
     if (isSaturday) return;
-    setLoading(true);
+    if (!_cache || _cache.date !== today) setLoading(true);
     setError('');
     try {
       const res = await api.get<MyTasksData>(`/api/tasks/my-tasks?date=${today}`);
+      _cache = { date: today, data: res.data };
       setData(res.data);
     } catch {
       setError('שגיאה בטעינת המשימות');
