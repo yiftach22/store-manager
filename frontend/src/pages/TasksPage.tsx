@@ -31,7 +31,7 @@ export function TasksPage() {
   }, [showAddRole]);
 
   const fetchAll = useCallback(async () => {
-    setLoading(true);
+    if (!_rolesCache) setLoading(true);
     setError('');
     try {
       const rolesRes = await api.get<JobRole[]>('/api/roles');
