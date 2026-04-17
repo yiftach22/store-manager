@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireManager } from '../middleware/auth';
 import {
   getRoles,
+  getRolesWithTemplates,
   createRole,
   renameRole,
   deleteRole,
@@ -13,6 +14,7 @@ import {
 
 export const router = Router();
 
+router.get('/with-templates', requireManager, getRolesWithTemplates);
 router.get('/', requireManager, getRoles);
 router.post('/', requireManager, createRole);
 router.patch('/:id', requireManager, renameRole);

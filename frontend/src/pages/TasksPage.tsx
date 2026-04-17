@@ -34,25 +34,14 @@ export function TasksPage() {
     if (!_rolesCache) setLoading(true);
     setError('');
     try {
-      const rolesRes = await api.get<JobRole[]>('/api/roles');
-      const fetchedRoles = rolesRes.data;
-      setRoles(fetchedRoles);
-      _rolesCache = fetchedRoles;
-
-      const templateResults = await Promise.all(
-        fetchedRoles.map((r) =>
-          api.get<TaskTemplate[]>(`/api/roles/${r.id}/templates`).then((res) => ({
-            roleId: r.id,
-            templates: res.data,
-          }))
-        )
-      );
-
+      const res = await api.get<(JobRole & { templates: TaskTemplate[] })[]>('/api/roles/with-templates');
+      const fetchedRoles = res.data.map(({ templates: _, ...r }) => r);
       const templateMap: Record<number, TaskTemplate[]> = {};
-      for (const { roleId, templates: ts } of templateResults) {
-        templateMap[roleId] = ts;
-      }
+      for (const r of res.data) templateMap[r.id] = r.templates;
+
+      setRoles(fetchedRoles);
       setTemplates(templateMap);
+      _rolesCache = fetchedRoles;
       _templatesCache = templateMap;
     } catch {
       setError('שגיאה בטעינת הנתונים');

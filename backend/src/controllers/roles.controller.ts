@@ -2,6 +2,22 @@ import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../prisma/client';
 import { AppError, ErrorCode } from '../types/errors';
 
+// GET /api/roles/with-templates
+export async function getRolesWithTemplates(req: Request, res: Response, next: NextFunction) {
+  try {
+    const roles = await prisma.jobRole.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'asc' },
+      include: {
+        templates: { orderBy: { id: 'asc' } },
+      },
+    });
+    res.json(roles);
+  } catch (err) {
+    next(err);
+  }
+}
+
 // GET /api/roles
 export async function getRoles(req: Request, res: Response, next: NextFunction) {
   try {
