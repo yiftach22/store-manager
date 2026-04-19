@@ -162,7 +162,7 @@ export async function getWeek(req: Request, res: Response, next: NextFunction) {
           include: { template: true, completedBy: { select: { name: true } } },
         });
         const instances = rawInstances
-          .map((inst) => flatten({ ...inst, isOverdue: computeOverdue(inst) }))
+          .map((inst) => flatten({ ...inst, isOverdue: false }))
           .sort(sortInstances);
         return { id: list.id, name: list.name, instances };
       })

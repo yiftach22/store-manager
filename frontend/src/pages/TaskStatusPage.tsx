@@ -30,9 +30,11 @@ interface OrderSummaryProps {
   done: number;
   total: number;
   color: string;
+  overdueCount?: number;
+  lists?: { name: string; done: number; total: number }[];
 }
 
-function OrderSummaryCard({ title, done, total, color }: OrderSummaryProps) {
+function OrderSummaryCard({ title, done, total, color, overdueCount, lists }: OrderSummaryProps) {
   return (
     <div className="bg-white rounded-xl shadow-md border border-gray-200 p-5">
       <h3 className="text-base font-semibold text-gray-800 mb-3">{title}</h3>
@@ -40,6 +42,19 @@ function OrderSummaryCard({ title, done, total, color }: OrderSummaryProps) {
         <ProgressBar done={done} total={total} color={color} />
       ) : (
         <p className="text-sm text-gray-300">אין הזמנות</p>
+      )}
+      {overdueCount !== undefined && overdueCount > 0 && (
+        <p className="text-sm text-red-500 mt-2">הזמנות מימים קודמים: {overdueCount}</p>
+      )}
+      {lists && lists.length > 0 && (
+        <ul className="mt-3 flex flex-col gap-1.5">
+          {lists.map((l) => (
+            <li key={l.name} className="flex justify-between text-sm">
+              <span className="text-gray-600">{l.name}</span>
+              <span className="text-gray-400 tabular-nums">{l.done}/{l.total}</span>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );
@@ -146,10 +161,20 @@ export function TaskStatusPage() {
   const todayInstances = weekData?.days.find((d) => d.date === todayStr)?.instances ?? [];
   const dailyDone = todayInstances.filter((i) => i.status).length;
   const dailyTotal = todayInstances.length;
+  // Count undone items from all previous days this week (not just today's rolled-over ones)
+  const overdueUndone = weekData?.days
+    .filter((d) => d.date < todayStr)
+    .flatMap((d) => d.instances)
+    .filter((i) => !i.status).length ?? 0;
 
   const weeklyInstances = weekData?.lists.flatMap((l) => l.instances) ?? [];
   const weeklyDone = weeklyInstances.filter((i) => i.status).length;
   const weeklyTotal = weeklyInstances.length;
+  const weeklyLists = weekData?.lists.map((l) => ({
+    name: l.name,
+    done: l.instances.filter((i) => i.status).length,
+    total: l.instances.length,
+  })) ?? [];
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col" dir="rtl">
@@ -209,12 +234,14 @@ export function TaskStatusPage() {
                 done={dailyDone}
                 total={dailyTotal}
                 color="bg-indigo-500"
+                overdueCount={overdueUndone}
               />
               <OrderSummaryCard
                 title="הזמנות שבועיות"
                 done={weeklyDone}
                 total={weeklyTotal}
                 color="bg-emerald-500"
+                lists={weeklyLists}
               />
             </div>
 

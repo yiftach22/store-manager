@@ -39,7 +39,7 @@ function completionHint(instance: OrderInstance): string | null {
 export function OrderItem({ instance, disabled = false, isEditMode = false, onToggle }: Props) {
   // In edit mode show a clean template view — no completion state, no overdue highlights
   const isDone = isEditMode ? false : instance.status;
-  const isOverdue = isEditMode ? false : (instance.isOverdue && !instance.status);
+  const isOverdue = isEditMode ? false : (instance.isOverdue && !instance.status && instance.listId == null);
   const hint = isEditMode ? null : completionHint(instance);
 
   return (
