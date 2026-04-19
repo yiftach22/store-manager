@@ -19,6 +19,13 @@ function HomeRedirect() {
   return <Navigate to={homePathFor(user.role)} replace />;
 }
 
+// / is shared by MANAGER and ORDERS — managers go to /tasks/status, ORDERS stay on orders board.
+function RootRedirect() {
+  const { user } = useAuth();
+  if (user?.role === 'MANAGER') return <Navigate to="/tasks/status" replace />;
+  return <OrdersPage />;
+}
+
 export function Router() {
   return (
     <BrowserRouter>
@@ -36,6 +43,14 @@ export function Router() {
           />
           <Route
             path="/"
+            element={
+              <ProtectedRoute allow={['MANAGER', 'ORDERS']}>
+                <RootRedirect />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders"
             element={
               <ProtectedRoute allow={['MANAGER', 'ORDERS']}>
                 <OrdersPage />

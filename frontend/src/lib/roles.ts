@@ -16,7 +16,7 @@ export function homePathFor(role: Role): string {
     case 'MANAGER':
       return '/tasks/status';
     case 'ORDERS':
-      return '/';
+      return '/orders';
     case 'WORKER':
       return '/my-tasks';
   }

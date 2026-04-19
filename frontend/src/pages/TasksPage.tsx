@@ -15,7 +15,7 @@ export function TasksPage() {
 
   // Redirect non-managers
   useEffect(() => {
-    if (user && user.role !== 'MANAGER') navigate('/', { replace: true });
+    if (user && user.role !== 'MANAGER') navigate('/orders', { replace: true });
   }, [user, navigate]);
 
   const [roles, setRoles] = useState<JobRole[]>(_rolesCache ?? []);

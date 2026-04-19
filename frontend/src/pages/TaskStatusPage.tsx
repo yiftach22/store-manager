@@ -68,7 +68,7 @@ export function TaskStatusPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user && user.role !== 'MANAGER') navigate('/', { replace: true });
+    if (user && user.role !== 'MANAGER') navigate('/orders', { replace: true });
   }, [user, navigate]);
 
   const [selectedDate, setSelectedDate] = useState(() => new Date());
