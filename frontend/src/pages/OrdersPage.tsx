@@ -260,27 +260,28 @@ export function OrdersPage() {
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="text-lg font-semibold text-gray-700">הזמנות שבועיות</h2>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <div className="flex overflow-x-auto gap-3 md:gap-4 pb-2 snap-x snap-mandatory -mx-3 px-3 md:mx-0 md:px-0 md:overflow-x-visible">
                       {weekData.lists.map((list) => (
-                        <FloatingList
-                          key={list.id}
-                          list={list}
-                          isManager={isManager}
-                          canAddOneOff={canAddOneOff}
-                          isEditMode={isEditMode}
-                          isFuture={isFutureWeek}
-                          weekStart={weekData.weekStart}
-                          onToggle={handleToggle}
-                          onAdded={handleListAdded}
-                          onListDeleted={handleListDeleted}
-                          onListRenamed={handleListRenamed}
-                          onTemplatesChanged={() => fetchWeek(weekStart)}
-                        />
+                        <div key={list.id} className="w-40 shrink-0 snap-center md:w-auto md:flex-1 flex flex-col">
+                          <FloatingList
+                            list={list}
+                            isManager={isManager}
+                            canAddOneOff={canAddOneOff}
+                            isEditMode={isEditMode}
+                            isFuture={isFutureWeek}
+                            weekStart={weekData.weekStart}
+                            onToggle={handleToggle}
+                            onAdded={handleListAdded}
+                            onListDeleted={handleListDeleted}
+                            onListRenamed={handleListRenamed}
+                            onTemplatesChanged={() => fetchWeek(weekStart)}
+                          />
+                        </div>
                       ))}
 
                       {/* Add list card — manager only */}
                       {isManager && isEditMode && (
-                        <div className="bg-white rounded-xl border-2 border-dashed border-gray-200 overflow-hidden flex items-center justify-center min-h-[8rem]">
+                        <div className="w-40 shrink-0 snap-center md:w-auto md:flex-1 bg-white rounded-xl border-2 border-dashed border-gray-200 overflow-hidden flex items-center justify-center min-h-[8rem]">
                           <button
                             onClick={() => setShowNewListModal(true)}
                             className="flex flex-col items-center gap-2 text-gray-300 hover:text-indigo-400 transition-colors"
